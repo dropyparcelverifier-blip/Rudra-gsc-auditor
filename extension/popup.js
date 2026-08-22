@@ -376,6 +376,7 @@ chrome.runtime.onMessage.addListener((msg) => {
   if (msg.type === 'BULK_SYNC_STATUS') {
     showToast(msg.ok ? 'Bulk results synced to dashboard' : 'Bulk sync failed — check dashboard URL', msg.ok ? 'ok' : 'err');
   }
+  return false;
 });
 
 function showToast(text, type) {

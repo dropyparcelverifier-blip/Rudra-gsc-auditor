@@ -14,6 +14,7 @@ function getApiUrl() {
 let queue = { state: 'idle', urls: [], results: [], processed: 0, errors: 0, total: 0, currentUrl: '' };
 let gscTabId = null;
 let processingTimeout = null;
+let isProcessing = false;
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
@@ -136,6 +137,7 @@ async function processUrlViaContentScript(url, retries = 2) {
 }
 
 async function processNext() {
+  if (isProcessing) return;
   if (queue.state !== 'running') return;
   if (queue.processed >= queue.total) {
     if (queue.state !== 'done') {
@@ -146,6 +148,7 @@ async function processNext() {
     }
     return;
   }
+  isProcessing = true;
 
   const idx = queue.processed;
   const url = queue.urls[idx];
@@ -206,13 +209,16 @@ async function processNext() {
   queue.currentUrl = '';
   broadcastState(); saveQueue();
 
+  isProcessing = false;
+
   if (queue.state === 'running' && queue.processed < queue.total) {
     // Random 20-30s delay between URLs to avoid rate limiting
     const delay = 20000 + Math.random() * 10000;
     console.log(`[GSC-EXT] Next URL in ${Math.round(delay / 1000)}s`);
     processingTimeout = setTimeout(processNext, delay);
-  } else if (queue.processed >= queue.total) {
+  } else if (queue.processed >= queue.total && queue.state !== 'done') {
     queue.state = 'done';
+    queue.currentUrl = '';
     broadcastState(); saveQueue();
     sendBulkResultsToDashboard();
   }
@@ -576,6 +582,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       case 'START_QUEUE': {
         const urls = (msg.urls || []).filter(u => u.startsWith('http'));
         if (!urls.length) return { error: 'No valid URLs' };
+        if (processingTimeout) clearTimeout(processingTimeout);
+        isProcessing = false;
         queue = { state: 'running', urls, results: [], processed: 0, errors: 0, total: urls.length, currentUrl: '' };
         saveQueue(); broadcastState(); processNext();
         return { ok: true, queued: urls.length };
@@ -626,6 +634,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         DASHBOARD_URL = msg.url || 'http://localhost:5001';
         chrome.storage.local.set({ dashboardUrl: DASHBOARD_URL });
         return { ok: true, dashboardUrl: DASHBOARD_URL };
+
+      default:
+        return { error: 'Unknown message type: ' + msg.type };
     }
   };
 
