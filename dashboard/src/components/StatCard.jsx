@@ -20,13 +20,13 @@ const iconBgMap = {
 export default function StatCard({ label, value, color = 'blue', icon: Icon, delta, subtitle }) {
   return (
     <div className={clsx(
-      'group rounded-xl border p-4 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 cursor-default',
+      'group rounded-2xl border p-4 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 cursor-default',
       colorMap[color]
     )}>
       <div className="flex items-start justify-between">
         <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-wider opacity-70">{label}</p>
-          <p className="mt-1 text-2xl font-extrabold tabular-nums">
+          <p className="mt-1 text-2xl font-extrabold tabular-nums tracking-tight">
             {typeof value === 'number' ? value.toLocaleString() : (value ?? '—')}
           </p>
           {subtitle && <p className="mt-0.5 text-[10px] opacity-60 truncate">{subtitle}</p>}
@@ -37,7 +37,7 @@ export default function StatCard({ label, value, color = 'blue', icon: Icon, del
           )}
         </div>
         {Icon && (
-          <div className={clsx('rounded-lg p-2.5 transition-transform duration-200 group-hover:scale-110', iconBgMap[color])}>
+          <div className={clsx('rounded-xl p-2.5 shadow-sm transition-transform duration-200 group-hover:scale-110', iconBgMap[color])}>
             <Icon size={18} />
           </div>
         )}

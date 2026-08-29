@@ -6,12 +6,12 @@ export default function ProgressBar({ current, total, label, color = 'from-blue-
         <span className="font-medium">{label}</span>
         <span className="tabular-nums">{current.toLocaleString()} / {total.toLocaleString()} <span className="font-semibold text-slate-700">({pct}%)</span></span>
       </div>
-      <div className="h-5 overflow-hidden rounded-full bg-slate-100 shadow-inner">
+      <div className="h-6 overflow-hidden rounded-full bg-slate-100 shadow-inner">
         <div
           className={`h-full rounded-full bg-gradient-to-r ${color} transition-all duration-700 ease-out flex items-center justify-center text-[10px] font-bold text-white shadow-sm`}
           style={{ width: `${Math.max(pct > 0 ? 3 : 0, pct)}%` }}
         >
-          {pct > 10 ? `${pct}%` : ''}
+          {pct > 8 ? `${pct}%` : ''}
         </div>
       </div>
     </div>

@@ -6,8 +6,8 @@ export default function FreshnessRow({ label, count, total, color }) {
         <span className="font-medium text-slate-700">{label}</span>
         <span className="tabular-nums text-slate-500">{count.toLocaleString()} <span className="font-semibold">({pct}%)</span></span>
       </div>
-      <div className="h-2.5 overflow-hidden rounded-full bg-slate-100 shadow-inner">
-        <div className={`h-full rounded-full ${color} transition-all duration-500 ease-out`} style={{ width: `${pct}%` }} />
+      <div className="h-3 overflow-hidden rounded-full bg-slate-100 shadow-inner">
+        <div className={`h-full rounded-full bg-gradient-to-r ${color} transition-all duration-500 ease-out`} style={{ width: `${pct}%` }} />
       </div>
     </div>
   );

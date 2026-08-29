@@ -13,6 +13,12 @@ const PHASE_LABELS = {
   error: 'Pipeline failed',
 };
 
+const borderGradientMap = {
+  running: 'from-blue-400 to-cyan-400',
+  completed: 'from-emerald-400 to-green-400',
+  failed: 'from-red-400 to-orange-400',
+};
+
 export default function PipelineNotification() {
   const [status, setStatus] = useState(null);
   const [dismissed, setDismissed] = useState({});
@@ -61,8 +67,12 @@ export default function PipelineNotification() {
 
   const Icon = isFailed ? AlertTriangle : isComplete ? CheckCircle : Loader;
 
+  const gradientBorder = borderGradientMap[state] || borderGradientMap.running;
+
   return (
-    <div className={`fixed bottom-4 right-4 z-50 w-80 rounded-xl border shadow-lg ${bgClass} p-4`}>
+    <div className={`fixed bottom-4 right-4 z-50 w-80 rounded-2xl border shadow-xl ${bgClass} p-4 overflow-hidden`}>
+      {/* Gradient left border accent */}
+      <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${gradientBorder}`} />
       <div className="flex items-start gap-3">
         <Icon size={20} className={`${iconColor} mt-0.5 ${isRunning ? 'animate-spin' : ''}`} />
         <div className="flex-1 min-w-0">
@@ -89,7 +99,7 @@ export default function PipelineNotification() {
                 <span>{(inspected || 0).toLocaleString()} inspected</span>
                 <span>{inspect_total.toLocaleString()} total</span>
               </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-blue-100">
+              <div className="h-2 overflow-hidden rounded-full bg-blue-100">
                 <div className="h-full rounded-full bg-blue-500 transition-all duration-500"
                   style={{ width: `${Math.min(100, (inspected || 0) / inspect_total * 100)}%` }} />
               </div>
