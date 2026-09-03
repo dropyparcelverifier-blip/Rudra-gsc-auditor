@@ -50,7 +50,7 @@ export default function Analytics({ data, loading, refresh }) {
     : currentList;
   const sorted = [...filtered].sort((a, b) => {
     const av = a[sortCol], bv = b[sortCol];
-    if (typeof av === 'string') return sortDir === 'desc' ? bv?.localeCompare(av) : av?.localeCompare(bv);
+    if (typeof av === 'string') return sortDir === 'desc' ? (bv || '').localeCompare(av || '') : (av || '').localeCompare(bv || '');
     return sortDir === 'desc' ? (bv - av || 0) : (av - bv || 0);
   });
 
@@ -119,7 +119,7 @@ export default function Analytics({ data, loading, refresh }) {
                       paddingAngle={3} strokeWidth={0}>
                       {Object.keys(devices).map((d, i) => <Cell key={i} fill={DEVICE_COLORS[d] || '#6366f1'} />)}
                     </Pie>
-                    <Tooltip formatter={v => v.toLocaleString()} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
+                    <Tooltip formatter={v => (v ?? 0).toLocaleString()} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
