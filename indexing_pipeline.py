@@ -147,8 +147,14 @@ def ensure_data_dir():
 
 def load_json(path: Path, default: Any = None) -> Any:
     if path.exists():
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, ValueError):
+            backup = path.with_suffix(".bak")
+            if path.exists():
+                path.rename(backup)
+            return default if default is not None else {}
     return default if default is not None else {}
 
 
@@ -681,13 +687,13 @@ def cmd_check(args):
     cprint(C.WHITE, f"  Never checked:   {len(unchecked)}")
 
     # Apply limit
-    limit = args.limit if args.limit else len(all_urls)
+    limit = args.limit if args.limit is not None else len(all_urls)
 
     if unchecked:
         urls_to_check = unchecked[:limit]
         cprint(C.WHITE, f"  Mode: Initial scan ({len(urls_to_check)} new URLs)")
     else:
-        urls_to_check = prioritize_urls(all_urls, index_status, limit)
+        urls_to_check = prioritize_urls(inspectable, index_status, limit)
         cprint(C.WHITE, f"  Mode: Monitoring re-check ({len(urls_to_check)} stale URLs)")
 
     cprint(C.WHITE, f"  Will check this run: {len(urls_to_check)}")
@@ -898,7 +904,7 @@ def cmd_submit(args):
             cprint(C.DIM, f"    {reason:<45} {cnt:>6}")
 
     # Apply limit
-    limit = args.limit if args.limit else 200
+    limit = args.limit if args.limit is not None else 200
     candidates = candidates[:limit]
     cprint(C.WHITE, f"  Will submit: {len(candidates)}")
 

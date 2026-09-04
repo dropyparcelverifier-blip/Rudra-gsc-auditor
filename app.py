@@ -137,7 +137,7 @@ class GSCRateLimiter:
             return {
                 "inspect": {"used": self._inspect_count, "limit": GSC_DAILY_INSPECT_LIMIT},
                 "search_analytics": {"used": self._sa_count, "limit": GSC_DAILY_SA_LIMIT},
-                "date": self._reset_date.isoformat(),
+                "date": self._reset_date,
             }
 
 gsc_limiter = GSCRateLimiter()
