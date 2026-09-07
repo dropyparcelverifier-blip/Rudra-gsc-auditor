@@ -78,7 +78,12 @@ export default function Indexing({ data, loading, refresh }) {
     setCatLoading(false);
   };
 
-  if (!data) return <div className="flex h-96 items-center justify-center text-slate-400">Loading...</div>;
+  if (!data) return (
+    <div className="flex h-96 flex-col items-center justify-center gap-3 text-slate-400">
+      <div className="h-12 w-12 rounded-full border-[3px] border-slate-200 border-t-blue-500 border-r-cyan-400 animate-spin" />
+      <span className="text-sm font-medium animate-pulse">Loading indexing data...</span>
+    </div>
+  );
 
   const sm = data.sitemaps || {};
   const pipeline = data.pipeline || {};
@@ -106,31 +111,35 @@ export default function Indexing({ data, loading, refresh }) {
   return (
     <div>
       <Header title="Page Indexing" onRefresh={() => { refresh(true); fetchClassifications(); }} loading={loading} />
-      <div className="space-y-6 p-6">
+      <div className="space-y-5 px-5 py-5">
 
         {/* Scan progress banner */}
-        <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-          <div className="flex items-center justify-between mb-2">
+        <div className="rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Search size={16} className="text-blue-600" />
-              <span className="text-sm font-semibold text-blue-800">URL Inspection Scan</span>
-              <DataSourceBadge source="pipeline_db" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-white shadow-sm backdrop-blur-sm">
+                <Search size={16} />
+              </div>
+              <div>
+                <span className="text-sm font-bold text-white">URL Inspection Scan</span>
+                <DataSourceBadge source="pipeline_db" className="ml-2" />
+              </div>
             </div>
             <div className="flex items-center gap-2">
-              {inspectResult && <span className="text-xs font-semibold text-emerald-600">{inspectResult}</span>}
+              {inspectResult && <span className="text-xs font-semibold text-emerald-200">{inspectResult}</span>}
               <button onClick={handleAutoInspect} disabled={inspecting}
-                className="flex items-center gap-1 rounded bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
+                className="flex items-center gap-1.5 rounded-lg bg-white/20 backdrop-blur-sm px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-white/30 disabled:opacity-50 transition-all border border-white/20">
                 {inspecting ? <RefreshCw size={12} className="animate-spin" /> : <Zap size={12} />}
                 Inspect Next 50
               </button>
             </div>
           </div>
-          <div className="h-3 w-full overflow-hidden rounded-full bg-blue-100">
-            <div className="h-full rounded-full bg-blue-500 transition-all duration-500" style={{ width: `${Math.min(scanPct, 100)}%` }} />
+          <div className="h-3.5 w-full overflow-hidden rounded-full bg-white/20">
+            <div className="h-full rounded-full bg-white/80 transition-all duration-700" style={{ width: `${Math.min(scanPct, 100)}%` }} />
           </div>
-          <div className="mt-1 flex justify-between text-[10px] text-blue-600">
+          <div className="mt-1.5 flex justify-between text-[10px] text-blue-100">
             <span>{pipelineTotal.toLocaleString()} of {totalSubmitted.toLocaleString()} inspected ({scanPct}%)</span>
-            <span>20,000/day capacity (10 accounts)</span>
+            <span>2,000/day (shared per property)</span>
           </div>
         </div>
 
@@ -149,7 +158,8 @@ export default function Indexing({ data, loading, refresh }) {
         {/* Smart Classification cards — clickable to show URLs */}
         {classData && (
           <div>
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-400">
+            <h2 className="mb-3 flex items-center gap-2 text-base font-semibold uppercase tracking-wider text-slate-400">
+              <span className="h-2 w-2 rounded-full bg-purple-500" />
               Actions — Click to View URLs
             </h2>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -160,16 +170,16 @@ export default function Indexing({ data, loading, refresh }) {
                 { key: 'snippet', label: 'Has Rich Results', count: actionCounts.snippet || 0, active: 'border-amber-500 ring-2 ring-amber-200', title: 'text-amber-600', value: 'text-amber-700' },
               ].map(item => (
                 <button key={item.key} onClick={() => loadCategoryUrls(item.key)}
-                  className={`rounded-xl border p-4 text-left transition hover:shadow-md ${selectedCat === item.key ? item.active : 'border-slate-200'}`}>
+                  className={`rounded-2xl border p-4 text-left shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 ${selectedCat === item.key ? item.active : 'border-slate-200'}`}>
                   <p className={`text-[10px] font-semibold uppercase ${item.title}`}>{item.label}</p>
                   <p className={`mt-1 text-2xl font-extrabold ${item.value}`}>{item.count.toLocaleString()}</p>
-                  <p className="mt-1 text-[10px] text-slate-500">Click to view URLs →</p>
+                  <p className="mt-1 text-[10px] text-slate-500">Click to view URLs</p>
                 </button>
               ))}
             </div>
 
             {submitResult && (
-              <div className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">
+              <div className="mt-2 rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-white px-3 py-2 text-xs font-semibold text-emerald-700">
                 {submitResult}
               </div>
             )}
@@ -178,67 +188,67 @@ export default function Indexing({ data, loading, refresh }) {
 
         {/* URL list for selected category */}
         {selectedCat && (
-          <div className="rounded-xl border border-slate-200 bg-white">
-            <div className="border-b border-slate-100 px-4 py-3 flex items-center justify-between">
+          <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-100 px-4 py-3.5 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-semibold text-slate-700">
                   {selectedCat === 'submit' ? 'Eligible for Submission' : selectedCat === 'indexed' ? 'Indexed URLs' : selectedCat === 'not_indexed' ? 'Not Indexed URLs' : 'URLs with Rich Results'}
                 </h3>
-                <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600">{catTotal.toLocaleString()}</span>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">{catTotal.toLocaleString()}</span>
               </div>
               <div className="flex items-center gap-2">
                 {selectedCat === 'submit' && (actionCounts.submit || 0) > 0 && (
                   <button onClick={() => handleBatchSubmit('')} disabled={submitting}
-                    className="flex items-center gap-1 rounded bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-purple-700 disabled:opacity-50">
+                    className="flex items-center gap-1 rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-purple-700 disabled:opacity-50 transition-all">
                     {submitting ? <RefreshCw size={12} className="animate-spin" /> : <Send size={12} />}
                     Submit Next 50
                   </button>
                 )}
                 <button onClick={() => { setSelectedCat(null); setCatUrls([]); }}
-                  className="text-xs text-slate-400 hover:text-slate-600">Close</button>
+                  className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Close</button>
               </div>
             </div>
             <div className="max-h-[500px] overflow-y-auto">
               <table className="w-full text-xs">
                 <thead className="sticky top-0">
                   <tr className="border-b border-slate-100 bg-slate-50 text-left">
-                    <th className="px-3 py-2 font-semibold text-slate-600">URL</th>
-                    <th className="px-3 py-2 font-semibold text-slate-600">Status</th>
-                    <th className="px-3 py-2 font-semibold text-slate-600">Rich Results</th>
-                    <th className="px-3 py-2 font-semibold text-slate-600">Checked</th>
+                    <th className="px-4 py-2.5 font-semibold text-slate-600">URL</th>
+                    <th className="px-4 py-2.5 font-semibold text-slate-600">Status</th>
+                    <th className="px-4 py-2.5 font-semibold text-slate-600">Rich Results</th>
+                    <th className="px-4 py-2.5 font-semibold text-slate-600">Checked</th>
                   </tr>
                 </thead>
                 <tbody>
                   {catLoading && <tr><td colSpan={4} className="px-4 py-6 text-center text-slate-400">Loading...</td></tr>}
                   {!catLoading && catUrls.length === 0 && <tr><td colSpan={4} className="px-4 py-6 text-center text-slate-400">No URLs found</td></tr>}
                   {catUrls.map((u, i) => (
-                    <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
-                      <td className="max-w-xs truncate px-3 py-1.5">
+                    <tr key={i} className="border-b border-slate-50 hover:bg-blue-50/40 transition-colors">
+                      <td className="max-w-xs truncate px-4 py-2.5">
                         <a href={u.url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-600 hover:underline">
                           <span className="truncate">{u.url?.replace(/^https?:\/\/[^/]+/, '')}</span>
                           <ExternalLink size={10} className="flex-shrink-0" />
                         </a>
                       </td>
-                      <td className="px-3 py-1.5">
-                        <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusColor(u.coverage)}`}>
+                      <td className="px-4 py-2.5">
+                        <span className={`inline-block rounded-full px-2.5 py-1 text-[10px] font-semibold ${statusColor(u.coverage)}`}>
                           {u.coverage || 'Unknown'}
                         </span>
                       </td>
-                      <td className="px-3 py-1.5">
+                      <td className="px-4 py-2.5">
                         <div className="flex flex-wrap gap-1">
                           {(u.rich_results || []).map((r, j) => (
-                            <span key={j} className="rounded bg-purple-100 px-1 py-0.5 text-[9px] font-semibold text-purple-700">{r}</span>
+                            <span key={j} className="rounded-full bg-purple-100 px-1.5 py-0.5 text-[9px] font-semibold text-purple-700">{r}</span>
                           ))}
                         </div>
                       </td>
-                      <td className="px-3 py-1.5 text-slate-500">{u.checked_at || '—'}</td>
+                      <td className="px-4 py-2.5 text-slate-500">{u.checked_at || '—'}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
             {catTotalPages > 1 && (
-              <div className="flex items-center justify-between border-t border-slate-100 px-4 py-2">
+              <div className="flex items-center justify-between border-t border-slate-100 px-4 py-2.5">
                 <button onClick={() => loadCategoryUrls(selectedCat, Math.max(1, catPage - 1))} disabled={catPage === 1}
                   className="flex items-center gap-1 text-xs text-slate-600 disabled:opacity-40"><ChevronLeft size={14} /> Prev</button>
                 <span className="text-xs text-slate-500">Page {catPage} of {catTotalPages}</span>
@@ -258,7 +268,7 @@ export default function Indexing({ data, loading, refresh }) {
 
         {/* Coverage breakdown — clickable bars */}
         {coverageData.length > 0 && (
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <h3 className="mb-3 text-sm font-semibold text-slate-700">
               Coverage Distribution ({pipelineTotal.toLocaleString()} URLs)
             </h3>
@@ -268,25 +278,25 @@ export default function Indexing({ data, loading, refresh }) {
                 const isSubmittable = ['crawled', 'unknown', 'discovered'].some(k => entry.name.toLowerCase().includes(k));
                 return (
                   <button key={entry.name} onClick={() => loadCategoryUrls(entry.name)}
-                    className={`w-full text-left rounded-lg border p-3 transition hover:shadow-sm ${selectedCat === entry.name ? 'border-blue-400 bg-blue-50' : 'border-slate-100 hover:border-slate-200'}`}>
+                    className={`w-full text-left rounded-xl border p-3.5 transition-all hover:shadow-md ${selectedCat === entry.name ? 'border-blue-400 bg-blue-50' : 'border-slate-100 hover:border-slate-200'}`}>
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <div className="h-2.5 w-2.5 rounded-full" style={{ background: COV_COLORS[entry.name] || '#6366f1' }} />
                         <span className="text-xs font-semibold text-slate-700">{entry.name}</span>
-                        {isSubmittable && <span className="rounded bg-purple-100 px-1 py-0.5 text-[9px] font-semibold text-purple-700">Can Submit</span>}
+                        {isSubmittable && <span className="rounded-full bg-purple-100 px-1.5 py-0.5 text-[9px] font-semibold text-purple-700">Can Submit</span>}
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-slate-800">{entry.value.toLocaleString()}</span>
                         <span className="text-[10px] text-slate-400">{pct}%</span>
                         {isSubmittable && (
                           <span role="button" tabIndex={0} onClick={(e) => { e.stopPropagation(); handleBatchSubmit(entry.name); }}
-                            className="flex items-center gap-0.5 rounded bg-purple-600 px-2 py-0.5 text-[9px] font-semibold text-white hover:bg-purple-700 cursor-pointer">
+                            className="flex items-center gap-0.5 rounded-full bg-purple-600 px-2.5 py-0.5 text-[9px] font-semibold text-white hover:bg-purple-700 cursor-pointer transition-colors">
                             <Send size={8} /> Submit
                           </span>
                         )}
                       </div>
                     </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                    <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
                       <div className="h-full rounded-full transition-all" style={{ background: COV_COLORS[entry.name] || '#6366f1', width: `${pct}%` }} />
                     </div>
                   </button>
@@ -298,27 +308,27 @@ export default function Indexing({ data, loading, refresh }) {
 
         {/* Sitemaps — LIVE */}
         {sm.details && sm.details.length > 0 && (
-          <div className="rounded-xl border border-slate-200 bg-white">
-            <div className="border-b border-slate-100 px-4 py-3 flex items-center gap-2">
+          <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-100 px-4 py-3.5 flex items-center gap-2">
               <h3 className="text-sm font-semibold text-slate-700">Sitemaps</h3>
               <DataSourceBadge source="live" />
             </div>
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50 text-left">
-                  <th className="px-4 py-2.5 font-semibold text-slate-600">Sitemap</th>
-                  <th className="px-4 py-2.5 text-right font-semibold text-slate-600">Submitted</th>
-                  <th className="px-4 py-2.5 text-right font-semibold text-slate-600">Indexed</th>
-                  <th className="px-4 py-2.5 text-right font-semibold text-slate-600">Gap</th>
+                  <th className="px-4 py-3 font-semibold text-slate-600">Sitemap</th>
+                  <th className="px-4 py-3 text-right font-semibold text-slate-600">Submitted</th>
+                  <th className="px-4 py-3 text-right font-semibold text-slate-600">Indexed</th>
+                  <th className="px-4 py-3 text-right font-semibold text-slate-600">Gap</th>
                 </tr>
               </thead>
               <tbody>
                 {sm.details.map((s, i) => (
-                  <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
-                    <td className="px-4 py-2.5 text-blue-600 truncate max-w-xs">{s.path.replace(/^https?:\/\/[^/]+/, '')}</td>
-                    <td className="px-4 py-2.5 text-right">{s.submitted.toLocaleString()}</td>
-                    <td className="px-4 py-2.5 text-right font-semibold text-emerald-700">{s.indexed.toLocaleString()}</td>
-                    <td className="px-4 py-2.5 text-right font-semibold text-red-600">{(s.submitted - s.indexed).toLocaleString()}</td>
+                  <tr key={i} className="border-b border-slate-50 hover:bg-blue-50/40 transition-colors">
+                    <td className="px-4 py-3 text-blue-600 truncate max-w-xs">{s.path.replace(/^https?:\/\/[^/]+/, '')}</td>
+                    <td className="px-4 py-3 text-right">{s.submitted.toLocaleString()}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-emerald-700">{s.indexed.toLocaleString()}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-red-600">{(s.submitted - s.indexed).toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -327,15 +337,19 @@ export default function Indexing({ data, loading, refresh }) {
         )}
 
         {/* How it works */}
-        <div className="flex gap-2 rounded-lg border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600">
-          <Info size={16} className="mt-0.5 shrink-0 text-slate-400" />
-          <div>
-            <p className="font-semibold text-slate-700 mb-1">Fully Automatic Pipeline</p>
-            <p>
-              Run <code className="rounded bg-slate-200 px-1">python indexing_pipeline.py daily</code> to automatically
-              inspect URLs, classify them, and submit eligible ones for indexing. Capacity: 20,000 inspections/day + 2,000 submissions/day
-              across 10 service accounts. Full scan: ~{Math.ceil(totalSubmitted / 20000)} days.
-            </p>
+        <div className="rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-100 via-slate-50 to-white p-5 shadow-sm">
+          <div className="flex gap-3 text-xs text-slate-600">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-slate-500 to-slate-600 text-white shadow-sm">
+              <Info size={14} />
+            </div>
+            <div>
+              <p className="font-semibold text-slate-700 mb-1 text-sm">Fully Automatic Pipeline</p>
+              <p>
+                Run <code className="rounded-md bg-slate-200/80 px-1.5 py-0.5 text-[10px] font-mono">python indexing_pipeline.py daily</code> to automatically
+                inspect URLs, classify them, and submit eligible ones for indexing. Capacity: 2,000 inspections/day (per property) + ~200 submissions/day (per project).
+                Full scan: ~{Math.ceil(totalSubmitted / 2000)} days.
+              </p>
+            </div>
           </div>
         </div>
       </div>
