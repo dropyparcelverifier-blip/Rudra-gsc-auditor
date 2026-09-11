@@ -7,11 +7,14 @@ let DASHBOARD_URL = DEFAULT_DASHBOARD_URL;
 let lastScrapedData = null;
 let dashboardSyncPending = false;
 
-function getApiUrl() {
-  if (DASHBOARD_URL.includes('localhost:3001') || DASHBOARD_URL.includes('localhost:3000') || DASHBOARD_URL.includes('localhost:5000')) {
-    DASHBOARD_URL = 'http://localhost:5001';
-    chrome.storage.sync.set({ dashboardUrl: DASHBOARD_URL });
+function normalizeDashboardUrl(url) {
+  if (url.includes('localhost:3001') || url.includes('localhost:3000') || url.includes('localhost:5000')) {
+    return 'http://localhost:5001';
   }
+  return url;
+}
+
+function getApiUrl() {
   return DASHBOARD_URL;
 }
 
@@ -48,9 +51,10 @@ function loadQueue() {
         PROPERTY = s.property;
       }
 
-      if (DASHBOARD_URL.includes('localhost:3001') || DASHBOARD_URL.includes('localhost:3000') || DASHBOARD_URL.includes('localhost:5000')) {
-        console.warn('[GSC-EXT] Dashboard URL was pointing to React dev server, fixing to Flask API port 5001');
-        DASHBOARD_URL = 'http://localhost:5001';
+      const normalized = normalizeDashboardUrl(DASHBOARD_URL);
+      if (normalized !== DASHBOARD_URL) {
+        console.warn('[GSC-EXT] Dashboard URL was pointing to wrong port, fixing to Flask API port 5001');
+        DASHBOARD_URL = normalized;
         chrome.storage.sync.set({ dashboardUrl: DASHBOARD_URL });
       }
 
@@ -118,9 +122,13 @@ async function waitForPageLoad(tabId, ms = 8000) {
 
 // ─── URL Inspection (delegated to content script) ───
 
-async function sendToContentScript(tabId, message) {
+async function sendToContentScript(tabId, message, timeoutMs = 60000) {
   return new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      resolve({ status: 'error', reason: 'Content script timed out after 60s' });
+    }, timeoutMs);
     chrome.tabs.sendMessage(tabId, message, (response) => {
+      clearTimeout(timer);
       if (chrome.runtime.lastError) {
         resolve({ status: 'error', reason: 'Content script not responding: ' + chrome.runtime.lastError.message });
       } else {
@@ -236,15 +244,9 @@ async function processNext() {
   isProcessing = false;
 
   if (queue.state === 'running' && queue.processed < queue.total) {
-    // Random 20-30s delay between URLs to avoid rate limiting
     const delay = 20000 + Math.random() * 10000;
     console.log(`[GSC-EXT] Next URL in ${Math.round(delay / 1000)}s`);
     processingTimeout = setTimeout(processNext, delay);
-  } else if (queue.processed >= queue.total && queue.state !== 'done') {
-    queue.state = 'done';
-    queue.currentUrl = '';
-    broadcastState(); saveQueue();
-    sendBulkResultsToDashboard();
   }
 }
 
@@ -664,7 +666,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
       case 'GET_SETTINGS': return { dashboardUrl: DASHBOARD_URL, property: PROPERTY, syncPending: dashboardSyncPending };
       case 'SET_DASHBOARD_URL':
-        DASHBOARD_URL = msg.url || DEFAULT_DASHBOARD_URL;
+        DASHBOARD_URL = normalizeDashboardUrl(msg.url || DEFAULT_DASHBOARD_URL);
         chrome.storage.sync.set({ dashboardUrl: DASHBOARD_URL });
         return { ok: true, dashboardUrl: DASHBOARD_URL };
       case 'SET_PROPERTY':
