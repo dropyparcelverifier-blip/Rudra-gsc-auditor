@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Save, RefreshCw } from 'lucide-react';
 import Header from '../components/Header';
 
@@ -19,16 +19,26 @@ export default function Settings() {
   const [form, setForm] = useState({});
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loadError, setLoadError] = useState(null);
+  const savedTimerRef = useRef(null);
 
   useEffect(() => {
+    let cancelled = false;
     (async () => {
       try {
         const res = await fetch('/api/gsc-reports');
         if (!res.ok) throw new Error(`Server error ${res.status}`);
         const d = await res.json();
-        setForm(d);
-      } catch (e) { console.error(e); }
+        if (!cancelled) setForm(d);
+      } catch (e) {
+        if (!cancelled) setLoadError(e.message);
+      }
     })();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    return () => { if (savedTimerRef.current) clearTimeout(savedTimerRef.current); };
   }, []);
 
   const handleSave = async () => {
@@ -42,7 +52,8 @@ export default function Settings() {
       });
       if (!res.ok) throw new Error(`Server error ${res.status}`);
       setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+      savedTimerRef.current = setTimeout(() => setSaved(false), 3000);
     } catch (e) { alert('Error saving: ' + e.message); }
     setLoading(false);
   };
@@ -52,6 +63,11 @@ export default function Settings() {
       <Header title="Settings" loading={loading} />
       <div className="space-y-6 p-6">
         <div className="rounded-xl border border-slate-200 bg-white p-6">
+          {loadError && (
+            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+              Failed to load settings: {loadError}
+            </div>
+          )}
           <h3 className="mb-1 text-sm font-semibold text-slate-800">GSC Report Numbers</h3>
           <p className="mb-5 text-xs text-slate-500">
             Manually enter the numbers from your Google Search Console dashboard. These drive the top-level stats in the Overview page.

@@ -350,9 +350,11 @@ export default function BulkTool() {
     const sample = 'url\nhttps://example.com/page-1\nhttps://example.com/page-2\nhttps://example.com/page-3\n';
     const blob = new Blob([sample], { type: 'text/csv' });
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
+    const url = URL.createObjectURL(blob);
+    a.href = url;
     a.download = 'sample_urls.csv';
     a.click();
+    URL.revokeObjectURL(url);
   };
 
   /* ----- State badge map ----- */
