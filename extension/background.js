@@ -1,9 +1,13 @@
-const PROPERTY = 'https://rudraretails.com/';
+const DEFAULT_PROPERTY = 'https://rudraretails.com/';
 const GSC_BASE = 'https://search.google.com/search-console';
-let DASHBOARD_URL = 'http://localhost:5001';
+const DEFAULT_DASHBOARD_URL = 'http://localhost:5001';
+
+let PROPERTY = DEFAULT_PROPERTY;
+let DASHBOARD_URL = DEFAULT_DASHBOARD_URL;
+let lastScrapedData = null;
+let dashboardSyncPending = false;
 
 function getApiUrl() {
-  // Always use Flask backend (5001), never React dev server (3001/3000)
   if (DASHBOARD_URL.includes('localhost:3001') || DASHBOARD_URL.includes('localhost:3000') || DASHBOARD_URL.includes('localhost:5000')) {
     DASHBOARD_URL = 'http://localhost:5001';
     chrome.storage.local.set({ dashboardUrl: DASHBOARD_URL });
@@ -27,22 +31,26 @@ function saveQueue() {
 }
 
 function loadQueue() {
-  chrome.storage.local.get(['queue', 'dashboardUrl', 'gscTabId'], (d) => {
+  chrome.storage.local.get(['queue', 'dashboardUrl', 'gscTabId', 'property', 'lastScrapedData', 'dashboardSyncPending'], (d) => {
     if (d.queue) {
       queue = d.queue;
       if (queue.state === 'running') queue.state = 'paused';
     }
-    if (d.dashboardUrl) {
-      DASHBOARD_URL = d.dashboardUrl;
-    }
-    if (d.gscTabId) {
-      gscTabId = d.gscTabId;
-    }
-    // Validate: dashboard URL must point to Flask API (port 5001), not React dev server (3001)
+    if (d.dashboardUrl) DASHBOARD_URL = d.dashboardUrl;
+    if (d.property) PROPERTY = d.property;
+    if (d.gscTabId) gscTabId = d.gscTabId;
+    if (d.lastScrapedData) lastScrapedData = d.lastScrapedData;
+    if (d.dashboardSyncPending) dashboardSyncPending = true;
+
     if (DASHBOARD_URL.includes('localhost:3001') || DASHBOARD_URL.includes('localhost:3000') || DASHBOARD_URL.includes('localhost:5000')) {
       console.warn('[GSC-EXT] Dashboard URL was pointing to React dev server, fixing to Flask API port 5001');
       DASHBOARD_URL = 'http://localhost:5001';
       chrome.storage.local.set({ dashboardUrl: DASHBOARD_URL });
+    }
+
+    if (dashboardSyncPending && queue.results.length > 0) {
+      console.log('[GSC-EXT] Retrying pending dashboard sync...');
+      sendBulkResultsToDashboard();
     }
   });
 }
@@ -226,6 +234,8 @@ async function processNext() {
 
 async function sendBulkResultsToDashboard() {
   console.log(`[GSC-EXT] Sending ${queue.results.length} bulk results to ${getApiUrl()}/api/extension/bulk-results`);
+  dashboardSyncPending = true;
+  chrome.storage.local.set({ dashboardSyncPending: true });
   try {
     const payload = {
       results: queue.results,
@@ -242,6 +252,10 @@ async function sendBulkResultsToDashboard() {
     const ok = resp.ok;
     const body = ok ? await resp.json() : await resp.text().catch(() => resp.status);
     console.log('[GSC-EXT] Bulk results sent to dashboard:', ok ? 'success' : resp.status, body);
+    if (ok) {
+      dashboardSyncPending = false;
+      chrome.storage.local.set({ dashboardSyncPending: false });
+    }
     chrome.runtime.sendMessage({ type: 'BULK_SYNC_STATUS', ok }).catch(() => {});
   } catch (e) {
     console.error('[GSC-EXT] Bulk results send FAILED:', DASHBOARD_URL, e.message);
@@ -548,6 +562,9 @@ async function fetchAllReports() {
   const sendResult = await sendToDashboard(reports);
   reports._dashboardSync = sendResult;
 
+  lastScrapedData = reports;
+  chrome.storage.local.set({ lastScrapedData: reports });
+
   return reports;
 }
 
@@ -629,11 +646,23 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       case 'SEND_TO_DASHBOARD': return await sendToDashboard(msg.data || {});
       case 'EXPORT_DATA': return { queue, scraped: true };
 
-      case 'GET_SETTINGS': return { dashboardUrl: DASHBOARD_URL };
+      case 'GET_SETTINGS': return { dashboardUrl: DASHBOARD_URL, property: PROPERTY, syncPending: dashboardSyncPending };
       case 'SET_DASHBOARD_URL':
-        DASHBOARD_URL = msg.url || 'http://localhost:5001';
+        DASHBOARD_URL = msg.url || DEFAULT_DASHBOARD_URL;
         chrome.storage.local.set({ dashboardUrl: DASHBOARD_URL });
         return { ok: true, dashboardUrl: DASHBOARD_URL };
+      case 'SET_PROPERTY':
+        PROPERTY = msg.property || DEFAULT_PROPERTY;
+        chrome.storage.local.set({ property: PROPERTY });
+        return { ok: true, property: PROPERTY };
+      case 'GET_SCRAPED_DATA':
+        return { data: lastScrapedData };
+      case 'RETRY_SYNC':
+        if (queue.results.length > 0) {
+          sendBulkResultsToDashboard();
+          return { ok: true, retrying: true };
+        }
+        return { ok: false, error: 'No results to sync' };
 
       default:
         return { error: 'Unknown message type: ' + msg.type };
