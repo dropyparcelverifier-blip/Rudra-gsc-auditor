@@ -998,9 +998,7 @@ def audit_url_parallel(url: str) -> AuditResult:
         pf = preflight(url)
         gsc_connected = _sc_v1 is not None
         if gsc_connected:
-            time.sleep(DELAY)
             gsc = gsc_inspect(url)
-            time.sleep(DELAY)
             sa = gsc_analytics(url)
         else:
             gsc = {"verdict": "-", "coverage": "Connect GSC to check", "robots": "-", "indexing": "-",
@@ -1010,7 +1008,7 @@ def audit_url_parallel(url: str) -> AuditResult:
             sa = {"clicks": 0, "impr": 0, "pos": 0, "ctr": 0, "queries": [], "quick_wins": [],
                   "mobile_pct": 0, "appearances": [], "error": "Not connected", "skipped": True}
 
-        actions = decide(pf, gsc if not gsc.get("error") or gsc.get("skipped") else {}, sa)
+        actions = decide(pf, gsc if (not gsc.get("error") or gsc.get("skipped")) else {}, sa)
         score = sa.get("impr", 0) + (100000 if any(act["p"] == 1 for act in actions) else 0) + (10000 if any(act["p"] == 2 for act in actions) else 0)
 
         return AuditResult(
@@ -1075,7 +1073,7 @@ def api_audit():
         sa = {"clicks": 0, "impr": 0, "pos": 0, "ctr": 0, "queries": [], "quick_wins": [],
               "mobile_pct": 0, "appearances": [], "error": "Not connected", "skipped": True}
 
-    actions = decide(pf, gsc if not gsc.get("error") or gsc.get("skipped") else {}, sa)
+    actions = decide(pf, gsc if (not gsc.get("error") or gsc.get("skipped")) else {}, sa)
     score = sa.get("impr", 0) + (100000 if any(act["p"] == 1 for act in actions) else 0) + (10000 if any(act["p"] == 2 for act in actions) else 0)
     return jsonify({"pf": pf, "gsc": gsc, "sa": sa, "actions": actions, "score": score,
                     "mode": "full" if gsc_connected else "preflight"})
@@ -1764,9 +1762,9 @@ def _compute_pipeline_stats(index_db: dict) -> dict:
             elif "Product" in r:
                 rich_breakdown["Product"] += 1
 
-    today = datetime.datetime.utcnow().strftime("%Y-%m-%d")
+    today_pt = _today_pt()
     submitted_today = sum(1 for v in index_db.values()
-                          if v.get("submitted_at", "").startswith(today))
+                          if v.get("submitted_at", "").startswith(today_pt))
 
     return {
         "total_tracked": total,
@@ -2520,7 +2518,7 @@ def api_live_all():
     daily_history = _load_json(DATA_DIR / "daily_history.json", [])
 
     results["pipeline"] = _compute_pipeline_stats(index_db)
-    today = datetime.datetime.utcnow().strftime("%Y-%m-%d")
+    today = _today_pt()
     accts = account_quotas.get("accounts", [])
     known_creds = {a.get("credentials_file") for a in accts}
     for cred_file in sorted(Path(".").glob("credentials*.json")):
