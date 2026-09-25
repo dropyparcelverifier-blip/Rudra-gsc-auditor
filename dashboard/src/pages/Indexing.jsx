@@ -6,6 +6,7 @@ import StatCard from '../components/StatCard';
 import DataSourceBadge from '../components/DataSourceBadge';
 import CoverageBreakdown from '../components/CoverageBreakdown';
 import { api } from '../lib/api';
+import { computePipelineStats } from '../lib/pipelineStats';
 
 const COV_COLORS = {
   'Submitted and indexed': '#22c55e',
@@ -81,13 +82,7 @@ export default function Indexing({ data, loading, refresh }) {
 
   const sm = data.sitemaps || {};
   const pipeline = data.pipeline || {};
-  const totalSubmitted = sm.total_submitted || 0;
-
-  const pipelineTotal = pipeline.total_tracked || 0;
-  const pipelineIndexed = pipeline.indexed || 0;
-  const pipelineNotIndexed = pipeline.not_indexed || 0;
-  const pipelineRate = pipelineTotal > 0 ? (pipelineIndexed / pipelineTotal * 100).toFixed(1) : 0;
-  const scanPct = totalSubmitted > 0 ? (pipelineTotal / totalSubmitted * 100).toFixed(1) : 0;
+  const { pipelineTotal, pipelineIndexed, pipelineNotIndexed, pipelineRate, totalSubmitted, scanPct } = computePipelineStats(data);
 
   const coverageData = Object.entries(pipeline.coverage_breakdown || {})
     .map(([name, value]) => ({ name, value }))

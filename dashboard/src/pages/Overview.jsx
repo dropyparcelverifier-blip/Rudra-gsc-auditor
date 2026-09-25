@@ -3,6 +3,7 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianG
 import StatCard from '../components/StatCard';
 import Header from '../components/Header';
 import DataSourceBadge from '../components/DataSourceBadge';
+import { computePipelineStats } from '../lib/pipelineStats';
 
 const DEVICE_ICONS = { DESKTOP: Monitor, MOBILE: Smartphone, TABLET: Tablet };
 const DEVICE_COLORS = { DESKTOP: '#3b82f6', MOBILE: '#22c55e', TABLET: '#a855f7' };
@@ -67,12 +68,7 @@ export default function Overview({ data, loading, refresh }) {
   const pl = pipeline || {};
   const richBreakdown = pl.rich_breakdown || {};
 
-  const pipelineTotal = pl.total_tracked || 0;
-  const pipelineIndexed = pl.indexed || 0;
-  const pipelineNotIndexed = pl.not_indexed || 0;
-  const pipelineRate = pipelineTotal > 0 ? (pipelineIndexed / pipelineTotal * 100).toFixed(1) : 0;
-  const totalSubmitted = sm.total_submitted || 0;
-  const scanPct = totalSubmitted > 0 ? (pipelineTotal / totalSubmitted * 100).toFixed(1) : 0;
+  const { pipelineTotal, pipelineIndexed, pipelineNotIndexed, pipelineRate, totalSubmitted, scanPct } = computePipelineStats(data);
 
   return (
     <div>
