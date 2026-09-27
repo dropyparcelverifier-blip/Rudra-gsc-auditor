@@ -111,3 +111,7 @@ gsc-auditor/
 - URL Inspection: 2,000/day per property
 - Indexing API: 200/day per property
 - Shopify: 2 req/sec burst, 40 req/min sustained
+
+## Author & Collaborator
+
+- **Sagar Ramnath Ghodsare** — [sagar21-creator](https://github.com/sagar21-creator)
