@@ -1,0 +1,185 @@
+{
+  "timestamp": "2026-10-07T13:47:00.778701",
+  "total": 43,
+  "fixed": 0,
+  "skipped": 0,
+  "errors": 43,
+  "details": {
+    "fixed": [],
+    "skipped": [],
+    "errors": [
+      {
+        "handle": "aquaphor-healing-ointment-3pack",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=aquaphor-healing-ointment-3pack&limit=1"
+      },
+      {
+        "handle": "aquaphor-lip-repair-ointment-2pack",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=aquaphor-lip-repair-ointment-2pack&limit=1"
+      },
+      {
+        "handle": "aquaphor-lip-repair-stick-2pack",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=aquaphor-lip-repair-stick-2pack&limit=1"
+      },
+      {
+        "handle": "aveeno-baby-eczema-nighttime-balm",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=aveeno-baby-eczema-nighttime-balm&limit=1"
+      },
+      {
+        "handle": "aveeno-baby-wash-shampoo-oat",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=aveeno-baby-wash-shampoo-oat&limit=1"
+      },
+      {
+        "handle": "celimax-the-vita-a-retinal-shot-tightening-booster-serum-15ml-2",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=celimax-the-vita-a-retinal-shot-tightening-booster-serum-15ml-2&limit=1"
+      },
+      {
+        "handle": "cerave-moisturizing-cream-face-body-8-fluid-ounce",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=cerave-moisturizing-cream-face-body-8-fluid-ounce&limit=1"
+      },
+      {
+        "handle": "garden-life-kids-gummy-vitamins",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=garden-life-kids-gummy-vitamins&limit=1"
+      },
+      {
+        "handle": "garden-life-kids-immune-gummies",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=garden-life-kids-immune-gummies&limit=1"
+      },
+      {
+        "handle": "garden-life-kids-multivitamin-30bears",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=garden-life-kids-multivitamin-30bears&limit=1"
+      },
+      {
+        "handle": "garden-life-organic-preworkout-blackberry",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=garden-life-organic-preworkout-blackberry&limit=1"
+      },
+      {
+        "handle": "garden-life-recovery-powder-blackberry",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=garden-life-recovery-powder-blackberry&limit=1"
+      },
+      {
+        "handle": "garden-life-vegan-protein-chocolate",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=garden-life-vegan-protein-chocolate&limit=1"
+      },
+      {
+        "handle": "garden-life-vegan-protein-vanilla",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=garden-life-vegan-protein-vanilla&limit=1"
+      },
+      {
+        "handle": "garden-life-whey-protein-vanilla",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=garden-life-whey-protein-vanilla&limit=1"
+      },
+      {
+        "handle": "garden-life-womens-probiotic-30caps",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=garden-life-womens-probiotic-30caps&limit=1"
+      },
+      {
+        "handle": "kahi-cleansing-balm-camellia",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=kahi-cleansing-balm-camellia&limit=1"
+      },
+      {
+        "handle": "kahi-pdrn-collagen-balm-stick",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=kahi-pdrn-collagen-balm-stick&limit=1"
+      },
+      {
+        "handle": "loreal-elvive-oil-100ml",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=loreal-elvive-oil-100ml&limit=1"
+      },
+      {
+        "handle": "loreal-revitalift-night-cream-retinol",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=loreal-revitalift-night-cream-retinol&limit=1"
+      },
+      {
+        "handle": "loreal-total-repair-conditioner-28oz",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=loreal-total-repair-conditioner-28oz&limit=1"
+      },
+      {
+        "handle": "medicube-booster-pro-pink",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=medicube-booster-pro-pink&limit=1"
+      },
+      {
+        "handle": "medicube-exosome-shot-serum",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=medicube-exosome-shot-serum&limit=1"
+      },
+      {
+        "handle": "medicube-mini-booster-pro-pink",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=medicube-mini-booster-pro-pink&limit=1"
+      },
+      {
+        "handle": "medicube-mini-booster-pro-white",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=medicube-mini-booster-pro-white&limit=1"
+      },
+      {
+        "handle": "medicube-pdrn-pink-peptide-serum",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=medicube-pdrn-pink-peptide-serum&limit=1"
+      },
+      {
+        "handle": "medicube-triple-collagen-serum",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=medicube-triple-collagen-serum&limit=1"
+      },
+      {
+        "handle": "medicube-txa-niacinamide-serum",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=medicube-txa-niacinamide-serum&limit=1"
+      },
+      {
+        "handle": "medicube-zero-pore-pads-70ct",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=medicube-zero-pore-pads-70ct&limit=1"
+      },
+      {
+        "handle": "natures-bounty-cinnamon-chromium-60capsules",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=natures-bounty-cinnamon-chromium-60capsules&limit=1"
+      },
+      {
+        "handle": "natures-bounty-echinacea-400mg-100capsules",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=natures-bounty-echinacea-400mg-100capsules&limit=1"
+      },
+      {
+        "handle": "naturesbounty-acidophilus-probiotic-tablets",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=naturesbounty-acidophilus-probiotic-tablets&limit=1"
+      },
+      {
+        "handle": "neutrogena-gel-cream-moisturizer-50ml",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=neutrogena-gel-cream-moisturizer-50ml&limit=1"
+      },
+      {
+        "handle": "neutrogena-hydro-boost-face-wash",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=neutrogena-hydro-boost-face-wash&limit=1"
+      },
+      {
+        "handle": "neutrogena-hydro-boost-gel-17oz",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=neutrogena-hydro-boost-gel-17oz&limit=1"
+      },
+      {
+        "handle": "neutrogena-hydro-boost-skincare",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=neutrogena-hydro-boost-skincare&limit=1"
+      },
+      {
+        "handle": "neutrogena-hydro-boost-spf50-50ml",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=neutrogena-hydro-boost-spf50-50ml&limit=1"
+      },
+      {
+        "handle": "now-eucalyptus-essential-oil-4oz",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=now-eucalyptus-essential-oil-4oz&limit=1"
+      },
+      {
+        "handle": "nutricost-b12-methylcobalamin-240capsules",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=nutricost-b12-methylcobalamin-240capsules&limit=1"
+      },
+      {
+        "handle": "nutricost-biotin-10000mcg-240capsules",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=nutricost-biotin-10000mcg-240capsules&limit=1"
+      },
+      {
+        "handle": "nutricost-glucosamine-chondroitin-240tablets",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=nutricost-glucosamine-chondroitin-240tablets&limit=1"
+      },
+      {
+        "handle": "nutricost-zinc-gluconate-240capsules",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=nutricost-zinc-gluconate-240capsules&limit=1"
+      },
+      {
+        "handle": "ordinary-glycolic-toner-240ml-1",
+        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=ordinary-glycolic-toner-240ml-1&limit=1"
+      }
+    ]
+  }
+}
