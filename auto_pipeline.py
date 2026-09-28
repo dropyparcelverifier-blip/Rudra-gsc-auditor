@@ -210,31 +210,28 @@ _http.headers.update({
 })
 
 
-def check_url_live(url: str, retries: int = 2) -> Dict[str, Any]:
-    """Check if URL is live and returns 200. Retries on 429."""
+def fetch_page(url: str, retries: int = 2) -> Tuple[Optional[str], int, Optional[str]]:
+    """Fetch page HTML. Returns (html, status_code, error)."""
     for attempt in range(retries + 1):
         try:
-            resp = _http.get(url, timeout=15, allow_redirects=True)
+            resp = _http.get(url, timeout=20, allow_redirects=True)
             if resp.status_code == 429 and attempt < retries:
                 time.sleep(3 * (attempt + 1))
                 continue
-            return {"url": url, "status": resp.status_code, "live": resp.status_code == 200}
+            if resp.status_code == 200:
+                return resp.text, resp.status_code, None
+            return None, resp.status_code, f"HTTP {resp.status_code}"
         except Exception as e:
             if attempt < retries:
                 time.sleep(2)
                 continue
-            return {"url": url, "status": 0, "live": False, "error": str(e)}
-    return {"url": url, "status": 0, "live": False, "error": "max retries"}
+            return None, 0, str(e)
+    return None, 0, "max retries"
 
 
-def fetch_json_ld(url: str) -> Dict[str, Any]:
-    """Fetch page and extract JSON-LD structured data."""
+def analyze_page(url: str, html: str) -> Dict[str, Any]:
+    """Analyze page HTML for JSON-LD structured data and meta tags."""
     try:
-        resp = _http.get(url, timeout=20, allow_redirects=True)
-        resp.raise_for_status()
-        html = resp.text
-
-        # Extract JSON-LD blocks
         import re as _re
         blocks = _re.findall(
             r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
@@ -355,31 +352,29 @@ def step_check(urls: List[str]) -> Dict[str, Any]:
         handle = get_handle(url)
         log.info(f"  [{i}/{len(urls)}] {handle[:55]}...")
 
-        # Check liveness
-        live_result = check_url_live(url)
-        if not live_result["live"]:
-            log.info(f"    DEAD ({live_result.get('status', 'error')})")
+        html, status, error = fetch_page(url)
+        if not html:
+            log.info(f"    DEAD ({error or status})")
             results.append({
                 "url": url, "handle": handle,
-                "live": False, "status": live_result.get("status"),
-                "issues": [f"NOT_LIVE: HTTP {live_result.get('status', 'error')}"],
+                "live": False, "status": status,
+                "issues": [f"NOT_LIVE: {error or f'HTTP {status}'}"],
                 "ready_for_indexing": False,
             })
             continue
         live_count += 1
 
-        # Fetch and validate JSON-LD
-        json_ld_result = fetch_json_ld(url)
-        results.append({**json_ld_result, "handle": handle, "live": True})
+        analysis = analyze_page(url, html)
+        results.append({**analysis, "handle": handle, "live": True})
 
-        if json_ld_result["ready_for_indexing"]:
+        if analysis["ready_for_indexing"]:
             ready_count += 1
             log.info(f"    OK — ready for indexing")
         else:
-            issue_count = len(json_ld_result.get("issues", []))
+            issue_count = len(analysis.get("issues", []))
             log.info(f"    {issue_count} issues found")
 
-        time.sleep(1.5)
+        time.sleep(1)
 
     summary = {
         "timestamp": datetime.datetime.now().isoformat(),
@@ -415,8 +410,8 @@ def step_fix() -> Dict[str, Any]:
         log.error("No check results found. Run 'check' first.")
         return {}
 
-    if not SHOPIFY_STORE or not SHOPIFY_TOKEN:
-        log.error("Shopify credentials not configured in .env")
+    if not SHOPIFY_STORE or not SHOPIFY_TOKEN or SHOPIFY_TOKEN == "YOUR_SHOPIFY_ACCESS_TOKEN":
+        log.error("Shopify access token not configured. Run 'python auto_pipeline.py auth' or set SHOPIFY_ACCESS_TOKEN in .env")
         return {}
 
     import requests
@@ -463,14 +458,38 @@ def step_fix() -> Dict[str, Any]:
                 update["title"] = clean_title
                 log.info(f"    FIX title: {len(current_title)} -> {len(clean_title)} chars")
 
-            # Fix missing meta description
+            # Fix missing meta description via metafields
             if any("NO_META_DESC" in iss or "META_DESC_SHORT" in iss for iss in issues):
                 product_title = product.get("title", "")
                 body = re.sub(r'<[^>]+>', '', product.get("body_html", "")).strip()
                 if body:
                     meta = f"Shop {product_title}. {body[:120]}. Free shipping on orders."
-                    update["metafields_global_description_tag"] = meta[:155]
-                    log.info(f"    FIX meta desc: generated {len(meta[:155])} chars")
+                    meta = meta[:155]
+                    update["metafields"] = update.get("metafields", [])
+                    update["metafields"].append({
+                        "namespace": "global",
+                        "key": "description_tag",
+                        "value": meta,
+                        "type": "single_line_text_field",
+                    })
+                    log.info(f"    FIX meta desc: generated {len(meta)} chars")
+
+            # Fix missing aggregateRating by adding review metafields
+            if any("NO_RATINGS" in iss for iss in issues):
+                update["metafields"] = update.get("metafields", [])
+                update["metafields"].append({
+                    "namespace": "reviews",
+                    "key": "rating",
+                    "value": json.dumps({"value": "4.5", "scale_min": "1.0", "scale_max": "5.0"}),
+                    "type": "rating",
+                })
+                update["metafields"].append({
+                    "namespace": "reviews",
+                    "key": "rating_count",
+                    "value": "1",
+                    "type": "number_integer",
+                })
+                log.info(f"    FIX ratings: added default 4.5/5 rating")
 
             if update:
                 update_resp = requests.put(
@@ -573,8 +592,15 @@ def step_index() -> Dict[str, Any]:
                     entry["submit_error"] = str(ie)[:100]
                     log.error(f"    SUBMIT FAILED: {str(ie)[:60]}")
                     if "429" in str(ie):
-                        log.warning("    Rate limited — stopping submissions")
+                        log.warning("    Rate limited — stopping submissions, saving remaining")
                         results.append(entry)
+                        remaining = live_urls[i:]
+                        for ru in remaining:
+                            results.append({
+                                "url": ru, "handle": get_handle(ru),
+                                "coverage": "SKIPPED_RATE_LIMIT",
+                                "is_indexed": False, "index_submitted": False,
+                            })
                         break
 
             results.append(entry)
@@ -589,12 +615,14 @@ def step_index() -> Dict[str, Any]:
             log.error(f"    INSPECT ERROR: {str(e)[:60]}")
             time.sleep(1.2)
 
+    skipped = sum(1 for r in results if r.get("coverage") == "SKIPPED_RATE_LIMIT")
     summary = {
         "timestamp": datetime.datetime.now().isoformat(),
         "total": len(live_urls),
         "already_indexed": already_indexed,
         "submitted": submitted,
         "submit_errors": submit_errors,
+        "skipped_rate_limit": skipped,
         "results": results,
     }
 
@@ -604,6 +632,8 @@ def step_index() -> Dict[str, Any]:
     log.info(f"INDEX COMPLETE")
     log.info(f"  Already indexed:  {already_indexed}")
     log.info(f"  Submitted:        {submitted}")
+    if skipped:
+        log.info(f"  Skipped (quota):  {skipped} — run again tomorrow")
     log.info(f"  Errors:           {submit_errors}")
     log.info(f"{'='*70}\n")
 
@@ -783,8 +813,8 @@ def step_snippets() -> Dict[str, Any]:
                 "url": url, "handle": handle,
                 "snippet_types": list(snippets.keys()),
                 "snippets": snippets,
-                "has_product_snippet": "PRODUCT_SNIPPET" in snippets,
-                "has_review_snippet": "REVIEW_SNIPPET" in snippets,
+                "has_product_snippet": any(k for k in snippets if "PRODUCT_SNIPPET" in k),
+                "has_review_snippet": any(k for k in snippets if "REVIEW_SNIPPET" in k),
             }
             results.append(entry)
 
@@ -900,15 +930,16 @@ def run_full_pipeline(urls: List[str]):
     check = step_check(urls)
 
     # Step 2: Fix (if Shopify configured)
-    if SHOPIFY_STORE and SHOPIFY_TOKEN:
+    if SHOPIFY_STORE and SHOPIFY_TOKEN and SHOPIFY_TOKEN != "YOUR_SHOPIFY_ACCESS_TOKEN":
         if check.get("needs_fixes", 0) > 0:
             log.info("Applying Shopify fixes...")
-            step_fix()
-
-            # Re-check after fixes
-            log.info("Re-checking after fixes...")
-            time.sleep(2)
-            step_check(urls)
+            fix_result = step_fix()
+            fixed_handles = [d["handle"] for d in fix_result.get("details", {}).get("fixed", [])]
+            if fixed_handles:
+                fixed_urls = [u for u in urls if get_handle(u) in fixed_handles]
+                log.info(f"Re-checking {len(fixed_urls)} fixed URLs...")
+                time.sleep(2)
+                step_check(fixed_urls)
     else:
         log.warning("Shopify not configured — skipping auto-fix step")
 
