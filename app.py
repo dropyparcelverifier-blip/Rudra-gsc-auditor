@@ -100,10 +100,10 @@ class GSCRateLimiter:
         self._inspect_count = 0
         self._sa_count = 0
         self._last_call = 0.0
-        self._reset_date = datetime.date.today()
+        self._reset_date = _today_pt()
 
     def _maybe_reset(self):
-        today = datetime.date.today()
+        today = _today_pt()
         if today > self._reset_date:
             self._inspect_count = 0
             self._sa_count = 0
@@ -111,6 +111,7 @@ class GSCRateLimiter:
 
     def wait_and_track(self, api_type: str = "inspect") -> bool:
         """Wait for rate limit, track quota. Returns False if daily limit hit."""
+        sleep_time = 0
         with self._lock:
             self._maybe_reset()
             if api_type == "inspect" and self._inspect_count >= GSC_DAILY_INSPECT_LIMIT:
@@ -119,13 +120,15 @@ class GSCRateLimiter:
                 return False
             elapsed = time.time() - self._last_call
             if elapsed < DELAY:
-                time.sleep(DELAY - elapsed)
-            self._last_call = time.time()
+                sleep_time = DELAY - elapsed
+            self._last_call = time.time() + sleep_time
             if api_type == "inspect":
                 self._inspect_count += 1
             else:
                 self._sa_count += 1
-            return True
+        if sleep_time > 0:
+            time.sleep(sleep_time)
+        return True
 
     @property
     def usage(self) -> Dict[str, Any]:
@@ -166,7 +169,7 @@ def handle_preflight():
     if request.method == 'OPTIONS':
         resp = app.make_default_options_response()
         origin = request.headers.get('Origin', '')
-        if origin.startswith('chrome-extension://') or 'localhost' in origin or not origin:
+        if origin.startswith('chrome-extension://') or origin.startswith('http://localhost') or origin.startswith('http://127.0.0.1') or not origin:
             resp.headers['Access-Control-Allow-Origin'] = origin or '*'
             resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
             resp.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
@@ -175,7 +178,7 @@ def handle_preflight():
 @app.after_request
 def add_cors_headers(response):
     origin = request.headers.get('Origin', '')
-    if origin.startswith('chrome-extension://') or 'localhost' in origin or not origin:
+    if origin.startswith('chrome-extension://') or origin.startswith('http://localhost') or origin.startswith('http://127.0.0.1') or not origin:
         response.headers['Access-Control-Allow-Origin'] = origin or '*'
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
@@ -951,7 +954,7 @@ def decide(pf, gsc, sa):
     # Reverse: page was indexed but is now broken
     if cov and "indexed" in cov.lower() and "not" not in cov.lower():
         if live_status >= 400:
-            a(1, "BREAKING", "Page is INDEXED in Google but now returns HTTP {live_status} -- will LOSE indexing soon",
+            a(1, "BREAKING", f"Page is INDEXED in Google but now returns HTTP {live_status} -- will LOSE indexing soon",
               f"Page returning {live_status}. Restore immediately or set up 301 redirect before Google recrawls.")
         if live_noindex:
             a(1, "BREAKING", "Page is INDEXED but now has noindex tag -- will be REMOVED from Google on next crawl",
@@ -1707,8 +1710,19 @@ def _load_json(path, default=None):
 
 
 def _save_json(path, data):
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=1, ensure_ascii=False)
+    import tempfile
+    path = Path(path)
+    try:
+        fd, tmp = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=1, ensure_ascii=False)
+        os.replace(tmp, path)
+    except Exception:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
 
 
 def _load_account_quotas():
@@ -1969,13 +1983,15 @@ def api_auto_inspect():
     from datetime import datetime as dt
     today = dt.utcnow().strftime("%Y-%m-%d")
     for r in results:
-        index_db[r["url"]] = {
+        if r["url"] not in index_db:
+            index_db[r["url"]] = {}
+        index_db[r["url"]].update({
             "coverage": r["coverage"],
             "rich_results": r["rich_results"],
             "is_indexed": r["is_indexed"],
             "checked_at": today,
-            "last_crawl": "",
-        }
+            "last_crawl": r.get("last_crawl", index_db[r["url"]].get("last_crawl", "")),
+        })
     _save_json(DATA_DIR / "index_status.json", index_db)
 
     return jsonify({"ok": True, "inspected": len(results), "results": results})
@@ -3047,9 +3063,10 @@ def api_bulk_queue_resume():
             return jsonify({"error": "Queue not paused"}), 400
         _bulk_queue["state"] = "running"
     _bulk_pause.set()
-    if _bulk_thread is None or not _bulk_thread.is_alive():
-        _bulk_thread = threading.Thread(target=_bulk_worker, daemon=True)
-        _bulk_thread.start()
+    with _bulk_lock:
+        if _bulk_thread is None or not _bulk_thread.is_alive():
+            _bulk_thread = threading.Thread(target=_bulk_worker, daemon=True)
+            _bulk_thread.start()
     return jsonify({"ok": True})
 
 
@@ -3148,15 +3165,18 @@ def api_extension_bulk_results():
         if not url:
             continue
         status = r.get("status", "")
-        index_db[url] = {
+        if url not in index_db:
+            index_db[url] = {}
+        index_db[url].update({
             "is_indexed": status == "indexed",
             "coverage": r.get("coverage", ""),
             "status": status,
             "action": r.get("action", ""),
             "rich_results": r.get("richResults", []),
-            "last_crawl": r.get("lastCrawl", ""),
+            "last_crawl": r.get("lastCrawl", index_db[url].get("last_crawl", "")),
             "checked_at": _today_pt(),
-        }
+            "synced_via": "extension",
+        })
     _save_json(DATA_DIR / "index_status.json", index_db)
 
     return jsonify({
