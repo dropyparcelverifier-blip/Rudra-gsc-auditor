@@ -2,7 +2,7 @@
 .env
 .env.local
 .env.*.local
-credentials.json
+credentials*.json
 token.json
 
 # Python
@@ -20,8 +20,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -54,6 +54,13 @@ input/urls.txt
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Runtime pipeline data
+data/
+
+# Node
+node_modules/
+dashboard/dist/
 
 # OS
 .DS_Store
