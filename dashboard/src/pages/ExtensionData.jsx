@@ -11,22 +11,10 @@ import {
   MousePointer, Eye, Percent, Hash, ExternalLink, Search,
 } from 'lucide-react';
 
-const STATUS_COLORS = {
-  indexed: 'text-green-600 bg-green-50',
-  requested: 'text-blue-600 bg-blue-50',
-  not_indexed: 'text-amber-600 bg-amber-50',
-  error: 'text-red-600 bg-red-50',
-};
-
-const STATUS_LABELS = {
-  indexed: 'Indexed',
-  requested: 'Requested',
-  not_indexed: 'Not Indexed',
-  error: 'Error',
-};
+import { STATUS_COLORS, STATUS_LABELS, STATUS_HEX } from '../lib/statusConstants';
 
 const DONUT_COLORS = ['#22c55e', '#ef4444'];
-const BULK_PIE_COLORS = { indexed: '#22c55e', requested: '#3b82f6', not_indexed: '#f59e0b', error: '#ef4444' };
+const BULK_PIE_COLORS = STATUS_HEX;
 
 const SEVERITY_COLORS = [
   '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16',
