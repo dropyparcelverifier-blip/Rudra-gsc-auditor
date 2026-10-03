@@ -1657,6 +1657,1234 @@ def index():
 
 
 # =============================================
+# NEW DASHBOARD API ENDPOINTS (v4 — multi-account pipeline)
+# =============================================
+
+DATA_DIR = Path("data")
+DATA_DIR.mkdir(exist_ok=True)
+
+
+def _load_json(path, default=None):
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return default if default is not None else {}
+
+
+def _save_json(path, data):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=1, ensure_ascii=False)
+
+
+def _compute_pipeline_stats(index_db: dict) -> dict:
+    """Compute coverage breakdown, rich breakdown, and counts from index_status DB."""
+    total = len(index_db)
+    indexed = sum(1 for v in index_db.values() if v.get("is_indexed"))
+
+    coverage_breakdown = {}
+    for v in index_db.values():
+        cov = v.get("coverage", "unknown")
+        coverage_breakdown[cov] = coverage_breakdown.get(cov, 0) + 1
+
+    rich_breakdown = {"Product": 0, "MerchantListing": 0, "Review": 0, "None": 0}
+    for v in index_db.values():
+        rich = v.get("rich_results", [])
+        if not rich:
+            rich_breakdown["None"] += 1
+        for r in rich:
+            if "Review" in r:
+                rich_breakdown["Review"] += 1
+            elif "Merchant" in r:
+                rich_breakdown["MerchantListing"] += 1
+            elif "Product" in r:
+                rich_breakdown["Product"] += 1
+
+    today = datetime.datetime.utcnow().strftime("%Y-%m-%d")
+    submitted_today = sum(1 for v in index_db.values()
+                          if v.get("submitted_at", "").startswith(today))
+
+    return {
+        "total_tracked": total,
+        "indexed": indexed,
+        "not_indexed": total - indexed,
+        "submitted_today": submitted_today,
+        "coverage_breakdown": coverage_breakdown,
+        "rich_breakdown": rich_breakdown,
+    }
+
+
+@app.route("/dashboard")
+@handle_errors
+def dashboard_v4():
+    from dashboard_template import DASHBOARD_HTML
+    return render_template_string(DASHBOARD_HTML,
+                                 site=SITE_URL,
+                                 brand=BRAND_NAME,
+                                 domain=BRAND_DOMAIN)
+
+
+@app.route("/api/dashboard-data")
+@handle_errors
+def api_dashboard_data():
+    """All dashboard data in one call: DB stats + GSC reports + daily history."""
+    index_db = _load_json(DATA_DIR / "index_status.json", {})
+    gsc_reports = _load_json(DATA_DIR / "gsc_reports.json", {})
+    daily_history = _load_json(DATA_DIR / "daily_history.json", [])
+    account_quotas = _load_json(DATA_DIR / "account_quotas.json", {"accounts": []})
+
+    stats = _compute_pipeline_stats(index_db)
+    rich = stats["rich_breakdown"]
+
+    return jsonify({
+        "stats": {
+            **{k: stats[k] for k in ("total_tracked", "indexed", "not_indexed", "submitted_today")},
+            "product_snippets": rich.get("Product", 0),
+            "merchant_listings": rich.get("MerchantListing", 0),
+            "review_snippets": rich.get("Review", 0),
+            "no_rich_results": rich.get("None", 0),
+        },
+        "coverage_breakdown": stats["coverage_breakdown"],
+        "rich_breakdown": rich,
+        "gsc_reports": gsc_reports,
+        "daily_history": daily_history[-90:],
+        "accounts": account_quotas.get("accounts", []),
+    })
+
+
+@app.route("/api/tracked-urls")
+@handle_errors
+def api_tracked_urls():
+    """Paginated URL browser with filtering."""
+    index_db = _load_json(DATA_DIR / "index_status.json", {})
+
+    page = int(request.args.get("page", 1))
+    per_page = int(request.args.get("per_page", 50))
+    status_filter = request.args.get("status", "")
+    search = request.args.get("search", "").lower()
+    rich_filter = request.args.get("rich", "")
+
+    items = list(index_db.items())
+
+    if status_filter:
+        items = [(url, v) for url, v in items
+                 if status_filter.lower() in v.get("coverage", "").lower()]
+    if search:
+        items = [(url, v) for url, v in items if search in url.lower()]
+    if rich_filter:
+        if rich_filter == "none":
+            items = [(url, v) for url, v in items if not v.get("rich_results")]
+        else:
+            items = [(url, v) for url, v in items
+                     if any(rich_filter.lower() in r.lower()
+                            for r in v.get("rich_results", []))]
+
+    total = len(items)
+    start = (page - 1) * per_page
+    page_items = items[start:start + per_page]
+
+    return jsonify({
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "pages": (total + per_page - 1) // per_page,
+        "urls": [{"url": url, **v} for url, v in page_items],
+    })
+
+
+@app.route("/api/smart-sync", methods=["POST"])
+@handle_errors
+def api_smart_sync():
+    """Free bulk index sync via Search Analytics — marks URLs with impressions as indexed."""
+    if _sc_v1 is None:
+        return jsonify({"error": "GSC not authenticated"}), 401
+
+    index_db = _load_json(DATA_DIR / "index_status.json", {})
+
+    from datetime import datetime as dt, timedelta
+    end = dt.utcnow().strftime("%Y-%m-%d")
+    start = (dt.utcnow() - timedelta(days=90)).strftime("%Y-%m-%d")
+
+    try:
+        body = {
+            "startDate": start,
+            "endDate": end,
+            "dimensions": ["page"],
+            "rowLimit": 25000,
+        }
+        resp = _sc_v1.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+        rows = resp.get("rows", [])
+
+        synced = 0
+        for row in rows:
+            url = row["keys"][0]
+            if url in index_db:
+                if not index_db[url].get("is_indexed"):
+                    index_db[url]["is_indexed"] = True
+                    index_db[url]["coverage"] = "Submitted and indexed"
+                    index_db[url]["synced_via"] = "search_analytics"
+                    synced += 1
+            else:
+                index_db[url] = {
+                    "coverage": "Submitted and indexed",
+                    "is_indexed": True,
+                    "rich_results": [],
+                    "last_crawl": "",
+                    "checked_at": end,
+                    "synced_via": "search_analytics",
+                    "clicks": row.get("clicks", 0),
+                    "impressions": row.get("impressions", 0),
+                }
+                synced += 1
+
+        _save_json(DATA_DIR / "index_status.json", index_db)
+
+        return jsonify({
+            "ok": True,
+            "urls_from_analytics": len(rows),
+            "newly_synced": synced,
+            "total_tracked": len(index_db),
+        })
+    except Exception as e:
+        logger.error(f"Smart sync error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/auto-inspect", methods=["POST"])
+@handle_errors
+def api_auto_inspect():
+    """Batch URL inspection from dashboard — inspects up to 50 URLs."""
+    if _sc_v1 is None:
+        return jsonify({"error": "GSC not authenticated"}), 401
+
+    data = request.get_json() or {}
+    urls = data.get("urls", [])[:50]
+
+    if not urls:
+        index_db = _load_json(DATA_DIR / "index_status.json", {})
+        urls = [url for url, v in index_db.items()
+                if not v.get("is_indexed") and not v.get("coverage", "").startswith("ERROR")][:50]
+
+    results = []
+    for url in urls:
+        try:
+            result = _sc_v1.urlInspection().index().inspect(
+                body={"inspectionUrl": url, "siteUrl": SITE_URL}
+            ).execute()
+            idx = result.get("inspectionResult", {}).get("indexStatusResult", {})
+            coverage = idx.get("coverageState", "unknown")
+            rich = result.get("inspectionResult", {}).get("richResultsResult", {})
+            rich_items = [item.get("richResultType", "")
+                          for item in rich.get("detectedItems", [])]
+
+            results.append({
+                "url": url,
+                "coverage": coverage,
+                "rich_results": rich_items,
+                "is_indexed": "indexed" in coverage.lower() and "not" not in coverage.lower(),
+            })
+            time.sleep(DELAY)
+        except Exception as e:
+            err = str(e)
+            if "429" in err or "quota" in err.lower():
+                break
+            results.append({"url": url, "coverage": f"ERROR: {err[:80]}", "rich_results": [], "is_indexed": False})
+            time.sleep(1)
+
+    # Update index_status DB
+    index_db = _load_json(DATA_DIR / "index_status.json", {})
+    from datetime import datetime as dt
+    today = dt.utcnow().strftime("%Y-%m-%d")
+    for r in results:
+        index_db[r["url"]] = {
+            "coverage": r["coverage"],
+            "rich_results": r["rich_results"],
+            "is_indexed": r["is_indexed"],
+            "checked_at": today,
+            "last_crawl": "",
+        }
+    _save_json(DATA_DIR / "index_status.json", index_db)
+
+    return jsonify({"ok": True, "inspected": len(results), "results": results})
+
+
+@app.route("/api/gsc-reports", methods=["GET", "POST"])
+@handle_errors
+def api_gsc_reports():
+    """Read/update cached GSC report numbers (from GSC UI)."""
+    if request.method == "GET":
+        reports = _load_json(DATA_DIR / "gsc_reports.json", {})
+        return jsonify(reports)
+    else:
+        data = request.get_json() or {}
+        reports = _load_json(DATA_DIR / "gsc_reports.json", {})
+        reports.update(data)
+        from datetime import datetime as dt
+        reports["last_updated"] = dt.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        _save_json(DATA_DIR / "gsc_reports.json", reports)
+        return jsonify({"ok": True, "reports": reports})
+
+
+@app.route("/api/accounts")
+@handle_errors
+def api_accounts():
+    """Show service account status/quota — auto-discovers all credentials files."""
+    quotas = _load_json(DATA_DIR / "account_quotas.json", {"accounts": []})
+    known = {a.get("credentials_file") for a in quotas.get("accounts", [])}
+    for cred_file in sorted(Path(".").glob("credentials*.json")):
+        if cred_file.name not in known:
+            try:
+                cred_data = json.loads(cred_file.read_text())
+                if cred_data.get("type") == "service_account":
+                    idx = len(quotas["accounts"]) + 1
+                    quotas["accounts"].append({
+                        "name": f"account-{idx}",
+                        "email": cred_data.get("client_email", ""),
+                        "credentials_file": cred_file.name,
+                        "inspect_used": 0, "inspect_limit": 2000,
+                        "index_used": 0, "index_limit": 200,
+                        "last_reset": time.strftime("%Y-%m-%d"),
+                    })
+                    known.add(cred_file.name)
+            except Exception:
+                continue
+    for a in quotas.get("accounts", []):
+        if not a.get("email") and a.get("credentials_file"):
+            try:
+                cd = json.loads(Path(a["credentials_file"]).read_text())
+                a["email"] = cd.get("client_email", "")
+            except Exception:
+                pass
+    return jsonify(quotas)
+
+
+# =============================================
+# LIVE GSC DATA ENDPOINTS (multi-account)
+# =============================================
+
+def _get_any_sc_service():
+    """Get a Search Console v1 service from any available service account."""
+    if _sc_v1 is not None:
+        return _sc_v1
+    for cred_file in sorted(Path(".").glob("credentials*.json")):
+        try:
+            cred_data = json.loads(cred_file.read_text())
+            if cred_data.get("type") == "service_account":
+                from google.oauth2 import service_account as sa_mod
+                from googleapiclient.discovery import build as gbuild
+                creds = sa_mod.Credentials.from_service_account_file(
+                    str(cred_file),
+                    scopes=["https://www.googleapis.com/auth/webmasters.readonly"])
+                return gbuild("searchconsole", "v1", credentials=creds, cache_discovery=False)
+        except Exception:
+            continue
+    return None
+
+
+def _get_any_wmt_service():
+    """Get a Webmasters v3 service from any available service account."""
+    if _wmt_v3 is not None:
+        return _wmt_v3
+    for cred_file in sorted(Path(".").glob("credentials*.json")):
+        try:
+            cred_data = json.loads(cred_file.read_text())
+            if cred_data.get("type") == "service_account":
+                from google.oauth2 import service_account as sa_mod
+                from googleapiclient.discovery import build as gbuild
+                creds = sa_mod.Credentials.from_service_account_file(
+                    str(cred_file),
+                    scopes=["https://www.googleapis.com/auth/webmasters.readonly"])
+                return gbuild("webmasters", "v3", credentials=creds, cache_discovery=False)
+        except Exception:
+            continue
+    return None
+
+
+# In-memory cache with TTL
+_live_cache = {}
+
+def _cached(key, ttl_seconds=300):
+    """Check if cached value exists and is fresh."""
+    if key in _live_cache:
+        val, ts = _live_cache[key]
+        if time.time() - ts < ttl_seconds:
+            return val
+    return None
+
+def _set_cache(key, val):
+    _live_cache[key] = (val, time.time())
+
+
+@app.route("/api/live/sitemap-stats")
+@handle_errors
+def api_live_sitemap_stats():
+    """LIVE: Get total submitted/indexed counts from sitemaps API."""
+    cached = _cached("sitemap_stats", 600)
+    if cached:
+        return jsonify(cached)
+
+    wmt = _get_any_wmt_service()
+    if not wmt:
+        return jsonify({"error": "No GSC service available"}), 401
+
+    try:
+        resp = wmt.sitemaps().list(siteUrl=SITE_URL).execute()
+        sitemaps = resp.get("sitemap", [])
+        total_submitted = 0
+        total_indexed = 0
+        sitemap_details = []
+        for sm in sitemaps:
+            submitted = sum(int(c.get("submitted", 0)) for c in sm.get("contents", []))
+            indexed = sum(int(c.get("indexed", 0)) for c in sm.get("contents", []))
+            total_submitted += submitted
+            total_indexed += indexed
+            sitemap_details.append({
+                "path": sm.get("path", ""),
+                "submitted": submitted,
+                "indexed": indexed,
+                "gap": submitted - indexed,
+                "last_submitted": sm.get("lastSubmitted", ""),
+                "last_downloaded": sm.get("lastDownloaded", ""),
+            })
+
+        result = {
+            "total_submitted": total_submitted,
+            "total_indexed": total_indexed,
+            "total_not_indexed": total_submitted - total_indexed,
+            "index_rate": round(total_indexed / total_submitted * 100, 1) if total_submitted else 0,
+            "sitemaps": sitemap_details,
+            "sitemap_count": len(sitemap_details),
+            "source": "live_sitemaps_api",
+            "fetched_at": datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+        }
+        _set_cache("sitemap_stats", result)
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Sitemap stats error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/live/snippet-stats")
+@handle_errors
+def api_live_snippet_stats():
+    """LIVE: Site-wide snippet/rich result stats from Search Analytics."""
+    cached = _cached("snippet_stats", 600)
+    if cached:
+        return jsonify(cached)
+
+    sc = _get_any_sc_service()
+    if not sc:
+        return jsonify({"error": "No GSC service available"}), 401
+
+    try:
+        end = (datetime.datetime.utcnow() - datetime.timedelta(days=3)).strftime("%Y-%m-%d")
+        start = (datetime.datetime.utcnow() - datetime.timedelta(days=90)).strftime("%Y-%m-%d")
+
+        body = {
+            "startDate": start,
+            "endDate": end,
+            "dimensions": ["searchAppearance"],
+            "aggregationType": "auto",
+            "type": "web",
+            "rowLimit": 25,
+            "dataState": "final",
+        }
+        resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+
+        snippet_types = {}
+        total_impressions = 0
+        total_clicks = 0
+        for row in resp.get("rows", []):
+            appearance = row["keys"][0]
+            impr = int(row.get("impressions", 0))
+            clicks = int(row.get("clicks", 0))
+            ctr = row.get("ctr", 0)
+            pos = row.get("position", 0)
+            snippet_types[appearance] = {
+                "impressions": impr,
+                "clicks": clicks,
+                "ctr": round(ctr * 100, 2),
+                "avg_position": round(pos, 1),
+            }
+            total_impressions += impr
+            total_clicks += clicks
+
+        for s in snippet_types.values():
+            s["impr_share"] = round(s["impressions"] / total_impressions * 100, 1) if total_impressions else 0
+
+        result = {
+            "snippet_types": snippet_types,
+            "total_impressions": total_impressions,
+            "total_clicks": total_clicks,
+            "product_snippets": snippet_types.get("PRODUCT_SNIPPET", {}).get("impressions", 0),
+            "merchant_listings": snippet_types.get("MERCHANT_LISTINGS", {}).get("impressions", 0),
+            "review_snippets": snippet_types.get("REVIEW_SNIPPET", {}).get("impressions", 0),
+            "days_analyzed": 90,
+            "source": "live_search_analytics",
+            "fetched_at": datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+        }
+        _set_cache("snippet_stats", result)
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Snippet stats error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/live/search-performance")
+@handle_errors
+def api_live_search_performance():
+    """LIVE: Site-wide search performance (clicks, impressions, CTR, position) over time."""
+    cached = _cached("search_performance", 600)
+    if cached:
+        return jsonify(cached)
+
+    sc = _get_any_sc_service()
+    if not sc:
+        return jsonify({"error": "No GSC service available"}), 401
+
+    try:
+        end = (datetime.datetime.utcnow() - datetime.timedelta(days=3)).strftime("%Y-%m-%d")
+        start = (datetime.datetime.utcnow() - datetime.timedelta(days=90)).strftime("%Y-%m-%d")
+
+        body = {
+            "startDate": start,
+            "endDate": end,
+            "dimensions": ["date"],
+            "aggregationType": "auto",
+            "type": "web",
+            "rowLimit": 25000,
+            "dataState": "final",
+        }
+        resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+
+        daily = []
+        totals = {"clicks": 0, "impressions": 0}
+        for row in resp.get("rows", []):
+            d = {
+                "date": row["keys"][0],
+                "clicks": int(row.get("clicks", 0)),
+                "impressions": int(row.get("impressions", 0)),
+                "ctr": round(row.get("ctr", 0) * 100, 2),
+                "position": round(row.get("position", 0), 1),
+            }
+            daily.append(d)
+            totals["clicks"] += d["clicks"]
+            totals["impressions"] += d["impressions"]
+
+        daily.sort(key=lambda x: x["date"])
+
+        result = {
+            "daily": daily,
+            "totals": {
+                "clicks": totals["clicks"],
+                "impressions": totals["impressions"],
+                "avg_ctr": round(totals["clicks"] / totals["impressions"] * 100, 2) if totals["impressions"] else 0,
+            },
+            "days": len(daily),
+            "source": "live_search_analytics",
+            "fetched_at": datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+        }
+        _set_cache("search_performance", result)
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Search performance error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/live/top-queries")
+@handle_errors
+def api_live_top_queries():
+    """LIVE: Top search queries with clicks, impressions, CTR, position."""
+    cached = _cached("top_queries", 600)
+    if cached:
+        return jsonify(cached)
+
+    sc = _get_any_sc_service()
+    if not sc:
+        return jsonify({"error": "No GSC service available"}), 401
+
+    try:
+        end = (datetime.datetime.utcnow() - datetime.timedelta(days=3)).strftime("%Y-%m-%d")
+        start = (datetime.datetime.utcnow() - datetime.timedelta(days=28)).strftime("%Y-%m-%d")
+
+        body = {
+            "startDate": start,
+            "endDate": end,
+            "dimensions": ["query"],
+            "aggregationType": "auto",
+            "type": "web",
+            "rowLimit": 200,
+            "dataState": "final",
+        }
+        resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+
+        queries = []
+        for row in resp.get("rows", []):
+            queries.append({
+                "query": row["keys"][0],
+                "clicks": int(row.get("clicks", 0)),
+                "impressions": int(row.get("impressions", 0)),
+                "ctr": round(row.get("ctr", 0) * 100, 2),
+                "position": round(row.get("position", 0), 1),
+            })
+
+        result = {
+            "queries": queries,
+            "total": len(queries),
+            "period": f"{start} to {end}",
+            "source": "live_search_analytics",
+            "fetched_at": datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+        }
+        _set_cache("top_queries", result)
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Top queries error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/live/top-pages")
+@handle_errors
+def api_live_top_pages():
+    """LIVE: Top performing pages with clicks, impressions, CTR, position."""
+    cached = _cached("top_pages", 600)
+    if cached:
+        return jsonify(cached)
+
+    sc = _get_any_sc_service()
+    if not sc:
+        return jsonify({"error": "No GSC service available"}), 401
+
+    try:
+        end = (datetime.datetime.utcnow() - datetime.timedelta(days=3)).strftime("%Y-%m-%d")
+        start = (datetime.datetime.utcnow() - datetime.timedelta(days=28)).strftime("%Y-%m-%d")
+
+        body = {
+            "startDate": start,
+            "endDate": end,
+            "dimensions": ["page"],
+            "aggregationType": "byPage",
+            "type": "web",
+            "rowLimit": 200,
+            "dataState": "final",
+        }
+        resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+
+        pages = []
+        for row in resp.get("rows", []):
+            pages.append({
+                "page": row["keys"][0],
+                "clicks": int(row.get("clicks", 0)),
+                "impressions": int(row.get("impressions", 0)),
+                "ctr": round(row.get("ctr", 0) * 100, 2),
+                "position": round(row.get("position", 0), 1),
+            })
+
+        result = {
+            "pages": pages,
+            "total": len(pages),
+            "period": f"{start} to {end}",
+            "source": "live_search_analytics",
+            "fetched_at": datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+        }
+        _set_cache("top_pages", result)
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Top pages error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/live/device-stats")
+@handle_errors
+def api_live_device_stats():
+    """LIVE: Performance breakdown by device type."""
+    cached = _cached("device_stats", 600)
+    if cached:
+        return jsonify(cached)
+
+    sc = _get_any_sc_service()
+    if not sc:
+        return jsonify({"error": "No GSC service available"}), 401
+
+    try:
+        end = (datetime.datetime.utcnow() - datetime.timedelta(days=3)).strftime("%Y-%m-%d")
+        start = (datetime.datetime.utcnow() - datetime.timedelta(days=28)).strftime("%Y-%m-%d")
+
+        body = {
+            "startDate": start,
+            "endDate": end,
+            "dimensions": ["device"],
+            "aggregationType": "auto",
+            "type": "web",
+            "rowLimit": 10,
+            "dataState": "final",
+        }
+        resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+
+        devices = {}
+        for row in resp.get("rows", []):
+            devices[row["keys"][0]] = {
+                "clicks": int(row.get("clicks", 0)),
+                "impressions": int(row.get("impressions", 0)),
+                "ctr": round(row.get("ctr", 0) * 100, 2),
+                "position": round(row.get("position", 0), 1),
+            }
+
+        result = {
+            "devices": devices,
+            "source": "live_search_analytics",
+            "fetched_at": datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+        }
+        _set_cache("device_stats", result)
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Device stats error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/live/country-stats")
+@handle_errors
+def api_live_country_stats():
+    """LIVE: Performance breakdown by country."""
+    cached = _cached("country_stats", 600)
+    if cached:
+        return jsonify(cached)
+
+    sc = _get_any_sc_service()
+    if not sc:
+        return jsonify({"error": "No GSC service available"}), 401
+
+    try:
+        end = (datetime.datetime.utcnow() - datetime.timedelta(days=3)).strftime("%Y-%m-%d")
+        start = (datetime.datetime.utcnow() - datetime.timedelta(days=28)).strftime("%Y-%m-%d")
+
+        body = {
+            "startDate": start,
+            "endDate": end,
+            "dimensions": ["country"],
+            "aggregationType": "auto",
+            "type": "web",
+            "rowLimit": 50,
+            "dataState": "final",
+        }
+        resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+
+        countries = []
+        for row in resp.get("rows", []):
+            countries.append({
+                "country": row["keys"][0],
+                "clicks": int(row.get("clicks", 0)),
+                "impressions": int(row.get("impressions", 0)),
+                "ctr": round(row.get("ctr", 0) * 100, 2),
+                "position": round(row.get("position", 0), 1),
+            })
+
+        result = {
+            "countries": countries,
+            "total": len(countries),
+            "source": "live_search_analytics",
+            "fetched_at": datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+        }
+        _set_cache("country_stats", result)
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Country stats error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/live/all")
+@handle_errors
+def api_live_all():
+    """LIVE: Combined endpoint — fetches all live data in one call for the dashboard."""
+    errors = {}
+    results = {}
+
+    # DB stats (always available)
+    index_db = _load_json(DATA_DIR / "index_status.json", {})
+    account_quotas = _load_json(DATA_DIR / "account_quotas.json", {"accounts": []})
+    daily_history = _load_json(DATA_DIR / "daily_history.json", [])
+
+    results["pipeline"] = _compute_pipeline_stats(index_db)
+    today = datetime.datetime.utcnow().strftime("%Y-%m-%d")
+    accts = account_quotas.get("accounts", [])
+    known_creds = {a.get("credentials_file") for a in accts}
+    for cred_file in sorted(Path(".").glob("credentials*.json")):
+        if cred_file.name not in known_creds:
+            try:
+                cd = json.loads(cred_file.read_text())
+                if cd.get("type") == "service_account":
+                    accts.append({
+                        "name": f"account-{len(accts)+1}",
+                        "email": cd.get("client_email", ""),
+                        "credentials_file": cred_file.name,
+                        "inspect_used": 0, "inspect_limit": 2000,
+                        "index_used": 0, "index_limit": 200,
+                        "last_reset": today,
+                    })
+                    known_creds.add(cred_file.name)
+            except Exception:
+                continue
+    for a in accts:
+        if not a.get("email") and a.get("credentials_file"):
+            try:
+                cd = json.loads(Path(a["credentials_file"]).read_text())
+                a["email"] = cd.get("client_email", "")
+            except Exception:
+                pass
+    results["accounts"] = accts
+    results["daily_history"] = daily_history[-90:]
+
+    # Live GSC data (with graceful fallback)
+    sc = _get_any_sc_service()
+    wmt = _get_any_wmt_service()
+
+    if wmt:
+        try:
+            resp = wmt.sitemaps().list(siteUrl=SITE_URL).execute()
+            sitemaps = resp.get("sitemap", [])
+            total_submitted = sum(sum(int(c.get("submitted", 0)) for c in sm.get("contents", [])) for sm in sitemaps)
+            total_indexed_sm = sum(sum(int(c.get("indexed", 0)) for c in sm.get("contents", [])) for sm in sitemaps)
+            results["sitemaps"] = {
+                "total_submitted": total_submitted,
+                "total_indexed": total_indexed_sm,
+                "total_not_indexed": total_submitted - total_indexed_sm,
+                "index_rate": round(total_indexed_sm / total_submitted * 100, 1) if total_submitted else 0,
+                "details": [{"path": sm.get("path",""), "submitted": sum(int(c.get("submitted",0)) for c in sm.get("contents",[])), "indexed": sum(int(c.get("indexed",0)) for c in sm.get("contents",[]))} for sm in sitemaps],
+            }
+        except Exception as e:
+            errors["sitemaps"] = str(e)
+
+    if sc:
+        end = (datetime.datetime.utcnow() - datetime.timedelta(days=3)).strftime("%Y-%m-%d")
+
+        # Count ALL indexed pages using paginated Search Analytics queries
+        # The API caps at 25K rows per request, but startRow lets us paginate
+        try:
+            cached_idx = _cached("indexed_page_count", 600)
+            if cached_idx is not None:
+                indexed_from_sa = cached_idx
+            else:
+                start90 = (datetime.datetime.utcnow() - datetime.timedelta(days=90)).strftime("%Y-%m-%d")
+                all_pages = set()
+                start_row = 0
+                while True:
+                    body = {"startDate": start90, "endDate": end, "dimensions": ["page"],
+                            "aggregationType": "auto", "type": "web", "rowLimit": 25000,
+                            "startRow": start_row, "dataState": "final"}
+                    resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+                    rows = resp.get("rows", [])
+                    if not rows:
+                        break
+                    for row in rows:
+                        all_pages.add(row["keys"][0])
+                    if len(rows) < 25000:
+                        break
+                    start_row += 25000
+                indexed_from_sa = len(all_pages)
+                _set_cache("indexed_page_count", indexed_from_sa)
+            is_capped = False
+            if "sitemaps" in results:
+                sm_data = results["sitemaps"]
+                if sm_data["total_indexed"] == 0 and indexed_from_sa > 0:
+                    sm_data["indexed_from_search"] = indexed_from_sa
+                    sm_data["indexed_capped"] = is_capped
+                    sm_data["total_indexed"] = indexed_from_sa
+                    sm_data["total_not_indexed"] = max(0, sm_data["total_submitted"] - indexed_from_sa)
+                    sm_data["index_rate"] = round(indexed_from_sa / sm_data["total_submitted"] * 100, 1) if sm_data["total_submitted"] else 0
+                    sm_data["index_source"] = "search_analytics_paginated"
+        except Exception as e:
+            errors["indexed_page_count"] = str(e)
+
+        # Snippet stats
+        try:
+            start90 = (datetime.datetime.utcnow() - datetime.timedelta(days=90)).strftime("%Y-%m-%d")
+            body = {"startDate": start90, "endDate": end, "dimensions": ["searchAppearance"], "aggregationType": "auto", "type": "web", "rowLimit": 25, "dataState": "final"}
+            resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+            snippet_types = {}
+            for row in resp.get("rows", []):
+                snippet_types[row["keys"][0]] = {"impressions": int(row.get("impressions",0)), "clicks": int(row.get("clicks",0)), "ctr": round(row.get("ctr",0)*100,2), "avg_position": round(row.get("position",0),1)}
+            results["snippets"] = snippet_types
+        except Exception as e:
+            errors["snippets"] = str(e)
+
+        # Search performance (last 28 days daily)
+        try:
+            start28 = (datetime.datetime.utcnow() - datetime.timedelta(days=28)).strftime("%Y-%m-%d")
+            body = {"startDate": start28, "endDate": end, "dimensions": ["date"], "aggregationType": "auto", "type": "web", "rowLimit": 25000, "dataState": "final"}
+            resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+            perf_daily = sorted([{"date": r["keys"][0], "clicks": int(r.get("clicks",0)), "impressions": int(r.get("impressions",0)), "ctr": round(r.get("ctr",0)*100,2), "position": round(r.get("position",0),1)} for r in resp.get("rows",[])], key=lambda x: x["date"])
+            total_clicks = sum(d["clicks"] for d in perf_daily)
+            total_impr = sum(d["impressions"] for d in perf_daily)
+            results["search_performance"] = {
+                "daily": perf_daily,
+                "total_clicks": total_clicks,
+                "total_impressions": total_impr,
+                "avg_ctr": round(total_clicks / total_impr * 100, 2) if total_impr else 0,
+            }
+        except Exception as e:
+            errors["search_performance"] = str(e)
+
+        # Top queries
+        try:
+            start28 = (datetime.datetime.utcnow() - datetime.timedelta(days=28)).strftime("%Y-%m-%d")
+            body = {"startDate": start28, "endDate": end, "dimensions": ["query"], "aggregationType": "auto", "type": "web", "rowLimit": 100, "dataState": "final"}
+            resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+            results["top_queries"] = [{"query": r["keys"][0], "clicks": int(r.get("clicks",0)), "impressions": int(r.get("impressions",0)), "ctr": round(r.get("ctr",0)*100,2), "position": round(r.get("position",0),1)} for r in resp.get("rows",[])]
+        except Exception as e:
+            errors["top_queries"] = str(e)
+
+        # Top pages
+        try:
+            start28 = (datetime.datetime.utcnow() - datetime.timedelta(days=28)).strftime("%Y-%m-%d")
+            body = {"startDate": start28, "endDate": end, "dimensions": ["page"], "aggregationType": "auto", "type": "web", "rowLimit": 200, "dataState": "final"}
+            resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+            results["top_pages"] = [{"page": r["keys"][0], "clicks": int(r.get("clicks",0)), "impressions": int(r.get("impressions",0)), "ctr": round(r.get("ctr",0)*100,2), "position": round(r.get("position",0),1)} for r in resp.get("rows",[])]
+        except Exception as e:
+            errors["top_pages"] = str(e)
+
+        # Device breakdown
+        try:
+            start28 = (datetime.datetime.utcnow() - datetime.timedelta(days=28)).strftime("%Y-%m-%d")
+            body = {"startDate": start28, "endDate": end, "dimensions": ["device"], "aggregationType": "auto", "type": "web", "rowLimit": 10, "dataState": "final"}
+            resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+            results["devices"] = {r["keys"][0]: {"clicks": int(r.get("clicks",0)), "impressions": int(r.get("impressions",0)), "ctr": round(r.get("ctr",0)*100,2), "position": round(r.get("position",0),1)} for r in resp.get("rows",[])}
+        except Exception as e:
+            errors["devices"] = str(e)
+
+        # Country breakdown
+        try:
+            start28 = (datetime.datetime.utcnow() - datetime.timedelta(days=28)).strftime("%Y-%m-%d")
+            body = {"startDate": start28, "endDate": end, "dimensions": ["country"], "aggregationType": "auto", "type": "web", "rowLimit": 30, "dataState": "final"}
+            resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+            results["countries"] = [{"country": r["keys"][0], "clicks": int(r.get("clicks",0)), "impressions": int(r.get("impressions",0)), "ctr": round(r.get("ctr",0)*100,2), "position": round(r.get("position",0),1)} for r in resp.get("rows",[])]
+        except Exception as e:
+            errors["countries"] = str(e)
+
+    results["errors"] = errors
+    results["is_live"] = bool(sc or wmt)
+    results["fetched_at"] = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    return jsonify(results)
+
+
+@app.route("/api/cache/clear", methods=["POST"])
+@handle_errors
+def api_cache_clear():
+    """Clear in-memory API cache to force fresh data."""
+    global _live_cache
+    _live_cache = {}
+    return jsonify({"ok": True, "message": "Cache cleared"})
+
+
+@app.route("/api/urls-by-category")
+@handle_errors
+def api_urls_by_category():
+    """URLs grouped by coverage category with pagination."""
+    index_db = _load_json(DATA_DIR / "index_status.json", {})
+    category = request.args.get("category", "")
+    rich_filter = request.args.get("rich", "")
+    action = request.args.get("action", "")
+    page = int(request.args.get("page", 1))
+    per_page = int(request.args.get("per_page", 50))
+
+    items = list(index_db.items())
+
+    if category:
+        items = [(url, v) for url, v in items if v.get("coverage", "").lower() == category.lower()]
+    if rich_filter:
+        if rich_filter == "none":
+            items = [(url, v) for url, v in items if not v.get("rich_results")]
+        else:
+            items = [(url, v) for url, v in items if any(rich_filter.lower() in r.lower() for r in v.get("rich_results", []))]
+    if action == "submit":
+        items = [(url, v) for url, v in items if not v.get("is_indexed") and any(
+            k in v.get("coverage", "").lower() for k in ("unknown", "discovered", "crawled"))]
+    elif action == "indexed":
+        items = [(url, v) for url, v in items if v.get("is_indexed")]
+    elif action == "not_indexed":
+        items = [(url, v) for url, v in items if not v.get("is_indexed")]
+
+    sort_by = request.args.get("sort", "")
+    sort_dir = request.args.get("dir", "desc")
+    if sort_by == "checked_at":
+        items.sort(key=lambda x: x[1].get("checked_at", ""), reverse=(sort_dir == "desc"))
+    elif sort_by == "coverage":
+        items.sort(key=lambda x: x[1].get("coverage", ""), reverse=(sort_dir == "desc"))
+    elif sort_by == "submitted_at":
+        items.sort(key=lambda x: x[1].get("submitted_at", ""), reverse=(sort_dir == "desc"))
+    elif sort_by == "last_crawl":
+        items.sort(key=lambda x: x[1].get("last_crawl_time", ""), reverse=(sort_dir == "desc"))
+    elif sort_by == "check_count":
+        items.sort(key=lambda x: x[1].get("check_count", 0), reverse=(sort_dir == "desc"))
+
+    total = len(items)
+    start = (page - 1) * per_page
+    page_items = items[start:start + per_page]
+
+    return jsonify({
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "pages": (total + per_page - 1) // per_page,
+        "urls": [{"url": url, **v} for url, v in page_items],
+    })
+
+
+@app.route("/api/batch-submit", methods=["POST"])
+@handle_errors
+def api_batch_submit():
+    """Submit not-indexed URLs for indexing via Google Indexing API."""
+    data = request.get_json() or {}
+    category = data.get("category", "")
+    limit = min(int(data.get("limit", 50)), 200)
+
+    index_db = _load_json(DATA_DIR / "index_status.json", {})
+    account_quotas = _load_json(DATA_DIR / "account_quotas.json", {"accounts": []})
+
+    # Find eligible URLs
+    eligible = []
+    for url, v in index_db.items():
+        if v.get("is_indexed"):
+            continue
+        cov = v.get("coverage", "").lower()
+        if not any(k in cov for k in ("unknown", "discovered", "crawled")):
+            continue
+        if category and category.lower() not in cov:
+            continue
+        if v.get("submitted_at", ""):
+            continue
+        eligible.append(url)
+    eligible = eligible[:limit]
+
+    if not eligible:
+        return jsonify({"ok": True, "submitted": 0, "message": "No eligible URLs to submit"})
+
+    # Find an account with quota
+    sc_service = None
+    acct_name = None
+    for acct in account_quotas.get("accounts", []):
+        if acct.get("index_used", 0) < acct.get("index_limit", 200):
+            cred_file = acct.get("credentials_file", "")
+            if cred_file and Path(cred_file).exists():
+                try:
+                    from google.oauth2 import service_account
+                    from googleapiclient.discovery import build
+                    creds = service_account.Credentials.from_service_account_file(
+                        cred_file, scopes=["https://www.googleapis.com/auth/indexing"])
+                    sc_service = build("indexing", "v3", credentials=creds, cache_discovery=False)
+                    acct_name = acct.get("name", cred_file)
+                    break
+                except Exception:
+                    continue
+
+    if not sc_service:
+        return jsonify({"error": "No service account with remaining indexing quota"}), 400
+
+    submitted = 0
+    errors = []
+    today = datetime.datetime.utcnow().strftime("%Y-%m-%d")
+    for url in eligible:
+        try:
+            sc_service.urlNotifications().publish(
+                body={"url": url, "type": "URL_UPDATED"}
+            ).execute()
+            index_db[url]["submitted_at"] = today
+            submitted += 1
+            time.sleep(0.5)
+        except Exception as e:
+            err = str(e)
+            if "429" in err or "quota" in err.lower():
+                break
+            errors.append({"url": url, "error": err[:100]})
+
+    _save_json(DATA_DIR / "index_status.json", index_db)
+
+    # Update quota
+    for acct in account_quotas.get("accounts", []):
+        if acct.get("name") == acct_name:
+            acct["index_used"] = acct.get("index_used", 0) + submitted
+            break
+    _save_json(DATA_DIR / "account_quotas.json", account_quotas)
+
+    return jsonify({
+        "ok": True,
+        "submitted": submitted,
+        "errors": errors,
+        "account": acct_name,
+        "remaining_eligible": len(eligible) - submitted,
+    })
+
+
+@app.route("/api/classifications")
+@handle_errors
+def api_classifications():
+    """URL classification summary — what to inspect, submit, track snippets for."""
+    classifications = _load_json(DATA_DIR / "url_classifications.json", {})
+    index_db = _load_json(DATA_DIR / "index_status.json", {})
+
+    # Live counts from index_status
+    total = len(index_db)
+    indexed = sum(1 for v in index_db.values() if v.get("is_indexed"))
+    not_indexed = total - indexed
+
+    # Coverage action breakdown
+    action_counts = {"inspect": 0, "submit": 0, "snippet": 0, "search": 0, "skip": 0}
+    coverage_actions = {}
+    for url, info in index_db.items():
+        coverage = info.get("coverage", "Unknown")
+        is_indexed = info.get("is_indexed", False)
+
+        # Should submit?
+        cov_lower = coverage.lower()
+        if not is_indexed and ("unknown" in cov_lower or "discovered" in cov_lower or "crawled" in cov_lower):
+            action_counts["submit"] += 1
+        if is_indexed and "/products/" in url:
+            action_counts["snippet"] += 1
+        if is_indexed:
+            action_counts["search"] += 1
+
+        if coverage not in coverage_actions:
+            coverage_actions[coverage] = {"count": 0, "inspect": True, "submit": False, "snippet": False}
+        coverage_actions[coverage]["count"] += 1
+        if is_indexed and "/products/" in url:
+            coverage_actions[coverage]["snippet"] = True
+        if not is_indexed and ("unknown" in cov_lower or "discovered" in cov_lower or "crawled" in cov_lower):
+            coverage_actions[coverage]["submit"] = True
+
+    return jsonify({
+        "total_tracked": total,
+        "indexed": indexed,
+        "not_indexed": not_indexed,
+        "action_counts": action_counts,
+        "coverage_actions": coverage_actions,
+        "saved_classification": classifications,
+    })
+
+
+@app.route("/api/monitor")
+@handle_errors
+def api_monitor():
+    """Monitoring status: scan progress, changes, freshness."""
+    index_db = _load_json(DATA_DIR / "index_status.json", {})
+    change_log = _load_json(DATA_DIR / "change_log.json", [])
+    daily_history = _load_json(DATA_DIR / "daily_history.json", [])
+
+    stats = _compute_pipeline_stats(index_db)
+    total = stats["total_tracked"]
+    indexed = stats["indexed"]
+
+    sitemap_file = Path("urls_all_sitemap.txt")
+    total_in_sitemap = 0
+    if sitemap_file.exists():
+        with open(sitemap_file, "r") as f:
+            total_in_sitemap = sum(1 for l in f if l.strip() and not l.startswith("#"))
+
+    now = datetime.datetime.utcnow()
+    freshness = {"fresh_3d": 0, "stale_3_7d": 0, "stale_7_14d": 0, "stale_14_30d": 0, "stale_30d_plus": 0}
+    for v in index_db.values():
+        checked = v.get("checked_at", "")
+        if not checked:
+            freshness["stale_30d_plus"] += 1
+            continue
+        try:
+            d = datetime.datetime.strptime(checked, "%Y-%m-%d")
+            days = (now - d).days
+        except ValueError:
+            freshness["stale_30d_plus"] += 1
+            continue
+        if days <= 3: freshness["fresh_3d"] += 1
+        elif days <= 7: freshness["stale_3_7d"] += 1
+        elif days <= 14: freshness["stale_7_14d"] += 1
+        elif days <= 30: freshness["stale_14_30d"] += 1
+        else: freshness["stale_30d_plus"] += 1
+
+    today_str = now.strftime("%Y-%m-%d")
+    today_changes = [c for c in change_log if c.get("date") == today_str]
+    recent_changes = change_log[-50:] if change_log else []
+
+    num_accounts = len(list(Path(".").glob("credentials*.json")))
+    daily_capacity = num_accounts * 2000
+    remaining_to_scan = max(0, total_in_sitemap - total)
+    days_to_complete = remaining_to_scan / daily_capacity if daily_capacity else 0
+
+    return jsonify({
+        "scan_progress": {
+            "total_in_sitemap": total_in_sitemap,
+            "inspected": total,
+            "indexed": indexed,
+            "not_indexed": total - indexed,
+            "scan_pct": round(total / total_in_sitemap * 100, 1) if total_in_sitemap else 0,
+            "daily_capacity": daily_capacity,
+            "remaining": remaining_to_scan,
+            "est_days_to_complete": round(days_to_complete, 1),
+        },
+        "freshness": freshness,
+        "coverage_breakdown": stats["coverage_breakdown"],
+        "changes_today": {
+            "total": len(today_changes),
+            "newly_indexed": sum(1 for c in today_changes if c.get("type") == "newly_indexed"),
+            "dropped": sum(1 for c in today_changes if c.get("type") == "dropped_from_index"),
+            "status_changes": sum(1 for c in today_changes if c.get("type") == "status_change"),
+        },
+        "recent_changes": [{"url": c["url"], "date": c["date"], "type": c.get("type", ""),
+                            "old": c.get("old_coverage", ""), "new": c.get("new_coverage", "")}
+                           for c in reversed(recent_changes)],
+        "daily_history": daily_history[-30:],
+    })
+
+
+@app.route("/api/pipeline-status")
+@handle_errors
+def api_pipeline_status():
+    """Current pipeline run status for dashboard notifications."""
+    status = _load_json(DATA_DIR / "pipeline_status.json", {})
+    return jsonify(status)
+
+
+@app.route("/api/changes")
+@handle_errors
+def api_changes():
+    """Filterable change log — newly indexed, dropped, status changes."""
+    change_log = _load_json(DATA_DIR / "change_log.json", [])
+
+    change_type = request.args.get("type", "")  # newly_indexed, dropped_from_index, status_change
+    date = request.args.get("date", "")
+    page = int(request.args.get("page", 1))
+    per_page = min(int(request.args.get("per_page", 50)), 200)
+
+    filtered = change_log
+    if change_type:
+        filtered = [c for c in filtered if c.get("type") == change_type]
+    if date:
+        filtered = [c for c in filtered if c.get("date") == date]
+
+    filtered = list(reversed(filtered))
+    total = len(filtered)
+    start = (page - 1) * per_page
+    page_items = filtered[start:start + per_page]
+
+    dropped_total = sum(1 for c in change_log if c.get("type") == "dropped_from_index")
+    newly_total = sum(1 for c in change_log if c.get("type") == "newly_indexed")
+
+    return jsonify({
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "pages": max(1, (total + per_page - 1) // per_page),
+        "summary": {
+            "total_dropped_ever": dropped_total,
+            "total_newly_indexed_ever": newly_total,
+        },
+        "changes": [{
+            "url": c.get("url", ""),
+            "date": c.get("date", ""),
+            "type": c.get("type", ""),
+            "old_coverage": c.get("old_coverage", ""),
+            "new_coverage": c.get("new_coverage", ""),
+            "timestamp": c.get("timestamp", ""),
+        } for c in page_items],
+    })
+
+
+# =============================================
 # FULL HTML TEMPLATE (from app.py)
 # =============================================
 HTML_TEMPLATE = r"""<!DOCTYPE html>
