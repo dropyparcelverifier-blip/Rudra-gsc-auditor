@@ -124,7 +124,12 @@ $('#btnStart').addEventListener('click', async () => {
 
 $('#btnAdd').addEventListener('click', () => {
   const urls = $('#urlInput').value.split('\n').map(u => u.trim()).filter(u => u.startsWith('http'));
-  if (urls.length) $('#urlInput').value = urls.join('\n');
+  if (urls.length) {
+    $('#urlInput').value = urls.join('\n');
+    showToast(`${urls.length} URL${urls.length > 1 ? 's' : ''} ready — click Start Queue`, 'ok');
+  } else {
+    showToast('No valid URLs found — paste URLs starting with http', 'err');
+  }
 });
 
 $('#btnPause').addEventListener('click', async () => { await sendMsg({ type: 'PAUSE_QUEUE' }); fetchState(); });
@@ -456,6 +461,24 @@ $('#btnExportData').addEventListener('click', () => {
   const blobUrl = URL.createObjectURL(blob);
   a.href = blobUrl;
   a.download = `gsc_data_${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(blobUrl);
+});
+
+$('#btnExportResults').addEventListener('click', async () => {
+  const resp = await sendMsg({ type: 'GET_STATE' });
+  const results = resp?.queue?.results;
+  if (!results?.length) return;
+  const rows = ['URL,Status,Coverage,Action,Rich Results'];
+  results.forEach(r => {
+    const rich = (r.richResults || []).join('; ');
+    rows.push(`"${(r.url || '').replace(/"/g, '""')}","${r.status || ''}","${(r.coverage || '').replace(/"/g, '""')}","${(r.action || r.error || '').replace(/"/g, '""')}","${rich}"`);
+  });
+  const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+  const a = document.createElement('a');
+  const blobUrl = URL.createObjectURL(blob);
+  a.href = blobUrl;
+  a.download = `bulk_results_${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
   URL.revokeObjectURL(blobUrl);
 });
