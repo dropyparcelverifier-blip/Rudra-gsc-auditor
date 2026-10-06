@@ -151,9 +151,11 @@ $('#btnSample').addEventListener('click', (e) => {
   const csv = 'url\nhttps://rudraretails.com/products/example-1\nhttps://rudraretails.com/products/example-2\n';
   const blob = new Blob([csv], { type: 'text/csv' });
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(blob);
+  a.href = url;
   a.download = 'sample_urls.csv';
   a.click();
+  URL.revokeObjectURL(url);
 });
 
 // ─── GSC Data Scrapers ───
@@ -289,6 +291,7 @@ $$('.data-btn[data-msg]').forEach(btn => {
     try {
       const data = await sendMsg({ type: msgType });
       lastScrapedData = data;
+      chrome.storage.local.set({ lastScrapedUIData: { type: msgType, data } });
       renderScrapedData(msgType, data);
     } catch (e) { showDataError(e.message || 'Failed'); }
   });
@@ -375,6 +378,11 @@ chrome.runtime.onMessage.addListener((msg) => {
   }
   if (msg.type === 'BULK_SYNC_STATUS') {
     showToast(msg.ok ? 'Bulk results synced to dashboard' : 'Bulk sync failed — check dashboard URL', msg.ok ? 'ok' : 'err');
+    if (msg.ok) {
+      $('#syncPendingBanner').style.display = 'none';
+    } else {
+      $('#syncPendingBanner').style.display = 'flex';
+    }
   }
   return false;
 });
@@ -396,7 +404,27 @@ function showToast(text, type) {
 (async () => {
   const settings = await sendMsg({ type: 'GET_SETTINGS' });
   if (settings?.dashboardUrl) $('#dashboardUrl').value = settings.dashboardUrl;
+  if (settings?.property) $('#propertyUrl').value = settings.property;
+  if (settings?.syncPending) {
+    $('#syncPendingBanner').style.display = 'flex';
+  }
+
+  // Load persisted scraped data if available
+  const scraped = await sendMsg({ type: 'GET_SCRAPED_DATA' });
+  if (scraped?.data) {
+    lastScrapedData = scraped.data;
+  }
 })();
+
+$('#btnSaveProperty').addEventListener('click', async () => {
+  let prop = $('#propertyUrl').value.trim();
+  if (!prop) return;
+  if (!prop.endsWith('/')) prop += '/';
+  await sendMsg({ type: 'SET_PROPERTY', property: prop });
+  $('#btnSaveProperty').textContent = 'Saved!';
+  showToast('Property updated — reload GSC tab to apply', 'ok');
+  setTimeout(() => { $('#btnSaveProperty').textContent = 'Save'; }, 1500);
+});
 
 $('#btnSaveUrl').addEventListener('click', async () => {
   let url = $('#dashboardUrl').value.trim().replace(/\/+$/, '');
@@ -411,13 +439,25 @@ $('#btnSaveUrl').addEventListener('click', async () => {
   setTimeout(() => { $('#btnSaveUrl').textContent = 'Save'; }, 1500);
 });
 
+$('#btnRetrySync').addEventListener('click', async () => {
+  $('#btnRetrySync').disabled = true;
+  $('#btnRetrySync').textContent = 'Syncing...';
+  const resp = await sendMsg({ type: 'RETRY_SYNC' });
+  setTimeout(() => {
+    $('#btnRetrySync').disabled = false;
+    $('#btnRetrySync').textContent = 'Retry Sync';
+  }, 3000);
+});
+
 $('#btnExportData').addEventListener('click', () => {
   if (!lastScrapedData) return;
   const blob = new Blob([JSON.stringify(lastScrapedData, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  const blobUrl = URL.createObjectURL(blob);
+  a.href = blobUrl;
   a.download = `gsc_data_${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
+  URL.revokeObjectURL(blobUrl);
 });
 
 fetchState();

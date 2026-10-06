@@ -125,6 +125,9 @@ textarea:disabled { opacity: 0.5; }
 .settings-input { flex: 1; border: 1px solid #e2e8f0; border-radius: 5px; padding: 4px 8px; font-size: 11px; font-family: monospace; background: #fff; outline: none; }
 .settings-input:focus { border-color: #93c5fd; }
 
+/* Sync pending banner */
+.sync-banner { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; padding: 8px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+
 /* Dashboard sync status */
 .sync-status { display: flex; align-items: center; gap: 6px; margin-top: 8px; padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; }
 .sync-status.sync-ok { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }

@@ -121,9 +121,18 @@
       </div>
       <p class="hint" style="margin-bottom:10px">Scrape live data from GSC, auto-sends to dashboard.</p>
       <div class="settings-row">
+        <label class="settings-label">GSC Property (URL-prefix)</label>
+        <input type="text" id="propertyUrl" class="settings-input" value="https://rudraretails.com/" placeholder="https://yoursite.com/">
+        <button id="btnSaveProperty" class="btn btn-outline btn-sm">Save</button>
+      </div>
+      <div class="settings-row">
         <label class="settings-label">Dashboard API URL (Flask, port 5001)</label>
         <input type="text" id="dashboardUrl" class="settings-input" value="http://localhost:5001" placeholder="http://localhost:5001">
         <button id="btnSaveUrl" class="btn btn-outline btn-sm">Save</button>
+      </div>
+      <div id="syncPendingBanner" class="sync-banner" style="display:none">
+        <span>&#9888; Dashboard sync pending — results not yet saved</span>
+        <button id="btnRetrySync" class="btn btn-outline btn-sm">Retry Sync</button>
       </div>
 
       <!-- Fetch All Progress -->
