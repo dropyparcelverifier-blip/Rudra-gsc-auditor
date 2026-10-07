@@ -135,7 +135,18 @@ $('#btnAdd').addEventListener('click', () => {
 $('#btnPause').addEventListener('click', async () => { await sendMsg({ type: 'PAUSE_QUEUE' }); fetchState(); });
 $('#btnResume').addEventListener('click', async () => { await sendMsg({ type: 'RESUME_QUEUE' }); fetchState(); });
 $('#btnStop').addEventListener('click', async () => { await sendMsg({ type: 'STOP_QUEUE' }); fetchState(); });
-$('#btnClear').addEventListener('click', async () => { await sendMsg({ type: 'CLEAR_QUEUE' }); $('#urlInput').value = ''; fetchState(); });
+$('#btnClear').addEventListener('click', async () => {
+  await sendMsg({ type: 'CLEAR_QUEUE' });
+  $('#urlInput').value = '';
+  $('#btnStart').textContent = 'Start Queue';
+  fetchState();
+  showToast('Queue cleared', 'ok');
+});
+
+$('#urlInput').addEventListener('input', () => {
+  const count = $('#urlInput').value.split('\n').filter(u => u.trim().startsWith('http')).length;
+  $('#btnStart').textContent = count > 0 ? `Start Queue (${count})` : 'Start Queue';
+});
 
 $('#btnImport').addEventListener('click', () => $('#fileInput').click());
 $('#fileInput').addEventListener('change', (e) => {
