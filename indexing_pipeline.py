@@ -161,9 +161,16 @@ def load_json(path: Path, default: Any = None) -> Any:
 def save_json(path: Path, data: Any):
     ensure_data_dir()
     tmp = path.with_suffix(".tmp")
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=1, ensure_ascii=False)
-    tmp.replace(path)
+    try:
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=1, ensure_ascii=False)
+        tmp.replace(path)
+    except Exception:
+        try:
+            tmp.unlink(missing_ok=True)
+        except OSError:
+            pass
+        raise
 
 
 def today_pt() -> str:

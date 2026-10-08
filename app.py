@@ -162,6 +162,7 @@ class AuditResult:
 # ─────────────────────────────────────────────
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB upload limit
 
 
 @app.before_request
