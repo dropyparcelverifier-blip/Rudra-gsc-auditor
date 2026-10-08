@@ -13,7 +13,7 @@ async function fetchJSON(url, opts = {}) {
 
 export const api = {
   // Combined live endpoint — one call for all GSC data
-  getLiveData: () => fetchJSON('/live/all'),
+  getLiveData: (signal) => fetchJSON('/live/all', { signal }),
 
   // Individual live endpoints
   getSitemapStats: () => fetchJSON('/live/sitemap-stats'),
@@ -55,6 +55,14 @@ export const api = {
   // Extension data
   getExtensionGscData: () => fetchJSON('/extension/gsc-data'),
   getBulkResults: () => fetchJSON('/bulk-results'),
+
+  // Extension queue relay (browser-based bulk processing)
+  extQueueStart: (urls) => fetchJSON('/extension/queue', { method: 'POST', body: JSON.stringify({ urls }) }),
+  extQueueStatus: () => fetchJSON('/extension/queue/status'),
+  extQueueClear: () => fetchJSON('/extension/queue/clear', { method: 'POST' }),
+
+  // Enhancement URLs from pipeline inspection data
+  getEnhancementUrls: (params) => fetchJSON('/enhancement-urls?' + new URLSearchParams(params)),
 
   // Actions
   smartSync: () => fetchJSON('/smart-sync', { method: 'POST' }),

@@ -14,12 +14,15 @@ export function useLiveData() {
     setLoading(true);
     try {
       if (force) await api.clearCache().catch(() => {});
-      const d = await api.getLiveData();
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 15000);
+      const d = await api.getLiveData(ctrl.signal);
+      clearTimeout(timer);
       setData(d);
       setError(null);
       setLastFetched(new Date());
     } catch (e) {
-      setError(e.message);
+      if (e.name !== 'AbortError') setError(e.message);
     }
     setLoading(false);
   }, []);

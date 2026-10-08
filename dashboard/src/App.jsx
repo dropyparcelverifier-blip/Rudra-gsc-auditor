@@ -10,7 +10,7 @@ import Snippets from './pages/Snippets';
 import Analytics from './pages/Analytics';
 import UrlBrowser from './pages/UrlBrowser';
 import Monitoring from './pages/Monitoring';
-import Accounts from './pages/Accounts';
+
 import Settings from './pages/Settings';
 import BulkTool from './pages/BulkTool';
 import ExtensionData from './pages/ExtensionData';
@@ -22,7 +22,7 @@ export default function App() {
   return (
     <div className="flex min-h-screen bg-slate-50">
       <Sidebar />
-      <main className="ml-56 flex-1">
+      <main className="ml-60 flex-1">
         {error && !dismissed && (
           <div className="mx-4 mt-4 flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-sm">
             <AlertTriangle size={16} className="flex-shrink-0" />
@@ -39,7 +39,7 @@ export default function App() {
           <Route path="/analytics" element={<Analytics data={data} loading={loading} refresh={refresh} />} />
           <Route path="/urls" element={<UrlBrowser />} />
           <Route path="/monitoring" element={<Monitoring />} />
-          <Route path="/accounts" element={<Accounts />} />
+
           <Route path="/settings" element={<Settings />} />
           <Route path="/bulk-tool" element={<BulkTool />} />
           <Route path="/extension" element={<ExtensionData />} />
