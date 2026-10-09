@@ -30,6 +30,7 @@ import json
 import time
 import logging
 import datetime
+from datetime import timezone, timedelta
 import threading
 import html as htmllib
 import urllib.request
@@ -68,7 +69,7 @@ CREDENTIALS_FILE = os.getenv("GOOGLE_CREDENTIALS_FILE", "credentials.json")
 SITE_URL         = os.getenv("GOOGLE_SITE_URL", "sc-domain:YOUR_DOMAIN_HERE")
 BRAND_DOMAIN     = os.getenv("BRAND_DOMAIN", "YOUR_DOMAIN_HERE")
 BRAND_NAME       = os.getenv("BRAND_NAME", "Rudra Retail")
-PORT             = int(os.getenv("FLASK_PORT", "5000"))
+PORT             = int(os.getenv("FLASK_PORT", "5001"))
 DELAY            = float(os.getenv("GOOGLE_RATE_LIMIT_DELAY", "1.0"))
 MAX_WORKERS      = int(os.getenv("MAX_WORKERS", "2"))
 REQUEST_TIMEOUT  = int(os.getenv("REQUEST_TIMEOUT", "15"))
@@ -81,6 +82,12 @@ GSC_DAILY_SA_LIMIT      = int(os.getenv("GSC_DAILY_SA_LIMIT", "20000"))
 
 SCOPES = ["https://www.googleapis.com/auth/webmasters.readonly"]
 UA = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+
+PT_OFFSET = timezone(timedelta(hours=-7))
+
+def _today_pt():
+    """Current date in Pacific Time — matches Google's quota reset."""
+    return datetime.datetime.now(PT_OFFSET).strftime("%Y-%m-%d")
 
 
 # ─────────────────────────────────────────────
@@ -152,6 +159,27 @@ class AuditResult:
 # ─────────────────────────────────────────────
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
+
+
+@app.before_request
+def handle_preflight():
+    if request.method == 'OPTIONS':
+        resp = app.make_default_options_response()
+        origin = request.headers.get('Origin', '')
+        if origin.startswith('chrome-extension://') or 'localhost' in origin or not origin:
+            resp.headers['Access-Control-Allow-Origin'] = origin or '*'
+            resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+            resp.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+        return resp
+
+@app.after_request
+def add_cors_headers(response):
+    origin = request.headers.get('Origin', '')
+    if origin.startswith('chrome-extension://') or 'localhost' in origin or not origin:
+        response.headers['Access-Control-Allow-Origin'] = origin or '*'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    return response
 
 _creds = None
 _sc_v1 = None
@@ -690,7 +718,11 @@ def gsc_analytics(url: str) -> Dict[str, Any]:
             total = {}
 
         # Top queries
-        gsc_limiter.wait_and_track("sa")
+        if not gsc_limiter.wait_and_track("sa"):
+            return {"clicks": int(total.get("clicks", 0)), "impr": int(total.get("impressions", 0)),
+                    "pos": round(total.get("position", 0), 1), "ctr": round(total.get("ctr", 0) * 100, 1),
+                    "queries": [], "quick_wins": [], "mobile_pct": 0, "appearances": [],
+                    "error": "Daily Search Analytics quota reached"}
         try:
             b2 = {"startDate": start, "endDate": end, "dimensions": ["query"],
                   "dimensionFilterGroups": [{"groupType": "and", "filters": [{"dimension": "page", "operator": "equals", "expression": url}]}],
@@ -703,7 +735,8 @@ def gsc_analytics(url: str) -> Dict[str, Any]:
             queries = []
 
         # Device split
-        gsc_limiter.wait_and_track("sa")
+        if not gsc_limiter.wait_and_track("sa"):
+            pass  # non-critical, continue with defaults
         try:
             b3 = {"startDate": start, "endDate": end, "dimensions": ["device"],
                   "dimensionFilterGroups": [{"groupType": "and", "filters": [{"dimension": "page", "operator": "equals", "expression": url}]}],
@@ -717,7 +750,8 @@ def gsc_analytics(url: str) -> Dict[str, Any]:
             mobile_pct = 0
 
         # Search appearance
-        gsc_limiter.wait_and_track("sa")
+        if not gsc_limiter.wait_and_track("sa"):
+            pass  # non-critical, continue with defaults
         try:
             b4 = {"startDate": start, "endDate": end, "dimensions": ["searchAppearance"],
                   "dimensionFilterGroups": [{"groupType": "and", "filters": [{"dimension": "page", "operator": "equals", "expression": url}]}],
@@ -1677,6 +1711,22 @@ def _save_json(path, data):
         json.dump(data, f, indent=1, ensure_ascii=False)
 
 
+def _load_account_quotas():
+    """Load account_quotas.json and auto-reset counters if the PT date has changed."""
+    quotas = _load_json(DATA_DIR / "account_quotas.json", {"accounts": []})
+    today = _today_pt()
+    changed = False
+    for acct in quotas.get("accounts", []):
+        if acct.get("last_reset", "") != today:
+            acct["inspect_used"] = 0
+            acct["index_used"] = 0
+            acct["last_reset"] = today
+            changed = True
+    if changed:
+        _save_json(DATA_DIR / "account_quotas.json", quotas)
+    return quotas
+
+
 def _compute_pipeline_stats(index_db: dict) -> dict:
     """Compute coverage breakdown, rich breakdown, and counts from index_status DB."""
     total = len(index_db)
@@ -1731,7 +1781,7 @@ def api_dashboard_data():
     index_db = _load_json(DATA_DIR / "index_status.json", {})
     gsc_reports = _load_json(DATA_DIR / "gsc_reports.json", {})
     daily_history = _load_json(DATA_DIR / "daily_history.json", [])
-    account_quotas = _load_json(DATA_DIR / "account_quotas.json", {"accounts": []})
+    account_quotas = _load_account_quotas()
 
     stats = _compute_pipeline_stats(index_db)
     rich = stats["rich_breakdown"]
@@ -1779,6 +1829,20 @@ def api_tracked_urls():
                      if any(rich_filter.lower() in r.lower()
                             for r in v.get("rich_results", []))]
 
+    sort_by = request.args.get("sort", "checked_at")
+    sort_dir = request.args.get("dir", "desc")
+    reverse = sort_dir == "desc"
+    if sort_by == "url":
+        items.sort(key=lambda x: x[0].lower(), reverse=reverse)
+    elif sort_by == "coverage":
+        items.sort(key=lambda x: x[1].get("coverage", ""), reverse=reverse)
+    elif sort_by == "last_crawl":
+        items.sort(key=lambda x: x[1].get("last_crawl", ""), reverse=reverse)
+    elif sort_by == "submitted_at":
+        items.sort(key=lambda x: x[1].get("submitted_at", ""), reverse=reverse)
+    else:
+        items.sort(key=lambda x: x[1].get("checked_at", ""), reverse=reverse)
+
     total = len(items)
     start = (page - 1) * per_page
     page_items = items[start:start + per_page]
@@ -1796,7 +1860,8 @@ def api_tracked_urls():
 @handle_errors
 def api_smart_sync():
     """Free bulk index sync via Search Analytics — marks URLs with impressions as indexed."""
-    if _sc_v1 is None:
+    wmt = _wmt_v3 or _get_any_wmt_service()
+    if wmt is None:
         return jsonify({"error": "GSC not authenticated"}), 401
 
     index_db = _load_json(DATA_DIR / "index_status.json", {})
@@ -1812,7 +1877,7 @@ def api_smart_sync():
             "dimensions": ["page"],
             "rowLimit": 25000,
         }
-        resp = _sc_v1.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+        resp = wmt.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
         rows = resp.get("rows", [])
 
         synced = 0
@@ -1854,7 +1919,8 @@ def api_smart_sync():
 @handle_errors
 def api_auto_inspect():
     """Batch URL inspection from dashboard — inspects up to 50 URLs."""
-    if _sc_v1 is None:
+    sc = _sc_v1 or _get_any_sc_service()
+    if sc is None:
         return jsonify({"error": "GSC not authenticated"}), 401
 
     data = request.get_json() or {}
@@ -1865,10 +1931,11 @@ def api_auto_inspect():
         urls = [url for url, v in index_db.items()
                 if not v.get("is_indexed") and not v.get("coverage", "").startswith("ERROR")][:50]
 
+    quotas = _load_account_quotas()
     results = []
     for url in urls:
         try:
-            result = _sc_v1.urlInspection().index().inspect(
+            result = sc.urlInspection().index().inspect(
                 body={"inspectionUrl": url, "siteUrl": SITE_URL}
             ).execute()
             idx = result.get("inspectionResult", {}).get("indexStatusResult", {})
@@ -1883,13 +1950,19 @@ def api_auto_inspect():
                 "rich_results": rich_items,
                 "is_indexed": "indexed" in coverage.lower() and "not" not in coverage.lower(),
             })
+            # Track quota for the first account (auto-inspect uses primary credentials)
+            if quotas.get("accounts"):
+                quotas["accounts"][0]["inspect_used"] = quotas["accounts"][0].get("inspect_used", 0) + 1
             time.sleep(DELAY)
         except Exception as e:
             err = str(e)
             if "429" in err or "quota" in err.lower():
+                if quotas.get("accounts"):
+                    quotas["accounts"][0]["inspect_used"] = quotas["accounts"][0].get("inspect_limit", 2000)
                 break
             results.append({"url": url, "coverage": f"ERROR: {err[:80]}", "rich_results": [], "is_indexed": False})
             time.sleep(1)
+    _save_json(DATA_DIR / "account_quotas.json", quotas)
 
     # Update index_status DB
     index_db = _load_json(DATA_DIR / "index_status.json", {})
@@ -1929,7 +2002,7 @@ def api_gsc_reports():
 @handle_errors
 def api_accounts():
     """Show service account status/quota — auto-discovers all credentials files."""
-    quotas = _load_json(DATA_DIR / "account_quotas.json", {"accounts": []})
+    quotas = _load_account_quotas()
     known = {a.get("credentials_file") for a in quotas.get("accounts", [])}
     for cred_file in sorted(Path(".").glob("credentials*.json")):
         if cred_file.name not in known:
@@ -1943,7 +2016,7 @@ def api_accounts():
                         "credentials_file": cred_file.name,
                         "inspect_used": 0, "inspect_limit": 2000,
                         "index_used": 0, "index_limit": 200,
-                        "last_reset": time.strftime("%Y-%m-%d"),
+                        "last_reset": _today_pt(),
                     })
                     known.add(cred_file.name)
             except Exception:
@@ -1955,17 +2028,39 @@ def api_accounts():
                 a["email"] = cd.get("client_email", "")
             except Exception:
                 pass
+    _save_json(DATA_DIR / "account_quotas.json", quotas)
     return jsonify(quotas)
+
+
+@app.route("/api/accounts/reset", methods=["POST"])
+@handle_errors
+def api_accounts_reset():
+    """Force-reset all account quotas to 0 for today (PT)."""
+    quotas = _load_json(DATA_DIR / "account_quotas.json", {"accounts": []})
+    today = _today_pt()
+    for acct in quotas.get("accounts", []):
+        acct["inspect_used"] = 0
+        acct["index_used"] = 0
+        acct["last_reset"] = today
+    _save_json(DATA_DIR / "account_quotas.json", quotas)
+    return jsonify({"ok": True, "message": f"All quotas reset for {today} (PT)"})
 
 
 # =============================================
 # LIVE GSC DATA ENDPOINTS (multi-account)
 # =============================================
 
+_cached_sc_service = None
+_cached_wmt_service = None
+
+
 def _get_any_sc_service():
     """Get a Search Console v1 service from any available service account."""
+    global _cached_sc_service
     if _sc_v1 is not None:
         return _sc_v1
+    if _cached_sc_service is not None:
+        return _cached_sc_service
     for cred_file in sorted(Path(".").glob("credentials*.json")):
         try:
             cred_data = json.loads(cred_file.read_text())
@@ -1975,7 +2070,8 @@ def _get_any_sc_service():
                 creds = sa_mod.Credentials.from_service_account_file(
                     str(cred_file),
                     scopes=["https://www.googleapis.com/auth/webmasters.readonly"])
-                return gbuild("searchconsole", "v1", credentials=creds, cache_discovery=False)
+                _cached_sc_service = gbuild("searchconsole", "v1", credentials=creds, cache_discovery=False)
+                return _cached_sc_service
         except Exception:
             continue
     return None
@@ -1983,8 +2079,11 @@ def _get_any_sc_service():
 
 def _get_any_wmt_service():
     """Get a Webmasters v3 service from any available service account."""
+    global _cached_wmt_service
     if _wmt_v3 is not None:
         return _wmt_v3
+    if _cached_wmt_service is not None:
+        return _cached_wmt_service
     for cred_file in sorted(Path(".").glob("credentials*.json")):
         try:
             cred_data = json.loads(cred_file.read_text())
@@ -1994,7 +2093,8 @@ def _get_any_wmt_service():
                 creds = sa_mod.Credentials.from_service_account_file(
                     str(cred_file),
                     scopes=["https://www.googleapis.com/auth/webmasters.readonly"])
-                return gbuild("webmasters", "v3", credentials=creds, cache_discovery=False)
+                _cached_wmt_service = gbuild("webmasters", "v3", credentials=creds, cache_discovery=False)
+                return _cached_wmt_service
         except Exception:
             continue
     return None
@@ -2072,8 +2172,8 @@ def api_live_snippet_stats():
     if cached:
         return jsonify(cached)
 
-    sc = _get_any_sc_service()
-    if not sc:
+    wmt = _get_any_wmt_service()
+    if not wmt:
         return jsonify({"error": "No GSC service available"}), 401
 
     try:
@@ -2089,7 +2189,7 @@ def api_live_snippet_stats():
             "rowLimit": 25,
             "dataState": "final",
         }
-        resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+        resp = wmt.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
 
         snippet_types = {}
         total_impressions = 0
@@ -2138,8 +2238,8 @@ def api_live_search_performance():
     if cached:
         return jsonify(cached)
 
-    sc = _get_any_sc_service()
-    if not sc:
+    wmt = _get_any_wmt_service()
+    if not wmt:
         return jsonify({"error": "No GSC service available"}), 401
 
     try:
@@ -2155,7 +2255,7 @@ def api_live_search_performance():
             "rowLimit": 25000,
             "dataState": "final",
         }
-        resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+        resp = wmt.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
 
         daily = []
         totals = {"clicks": 0, "impressions": 0}
@@ -2199,8 +2299,8 @@ def api_live_top_queries():
     if cached:
         return jsonify(cached)
 
-    sc = _get_any_sc_service()
-    if not sc:
+    wmt = _get_any_wmt_service()
+    if not wmt:
         return jsonify({"error": "No GSC service available"}), 401
 
     try:
@@ -2216,7 +2316,7 @@ def api_live_top_queries():
             "rowLimit": 200,
             "dataState": "final",
         }
-        resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+        resp = wmt.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
 
         queries = []
         for row in resp.get("rows", []):
@@ -2250,8 +2350,8 @@ def api_live_top_pages():
     if cached:
         return jsonify(cached)
 
-    sc = _get_any_sc_service()
-    if not sc:
+    wmt = _get_any_wmt_service()
+    if not wmt:
         return jsonify({"error": "No GSC service available"}), 401
 
     try:
@@ -2267,7 +2367,7 @@ def api_live_top_pages():
             "rowLimit": 200,
             "dataState": "final",
         }
-        resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+        resp = wmt.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
 
         pages = []
         for row in resp.get("rows", []):
@@ -2301,8 +2401,8 @@ def api_live_device_stats():
     if cached:
         return jsonify(cached)
 
-    sc = _get_any_sc_service()
-    if not sc:
+    wmt = _get_any_wmt_service()
+    if not wmt:
         return jsonify({"error": "No GSC service available"}), 401
 
     try:
@@ -2318,7 +2418,7 @@ def api_live_device_stats():
             "rowLimit": 10,
             "dataState": "final",
         }
-        resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+        resp = wmt.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
 
         devices = {}
         for row in resp.get("rows", []):
@@ -2349,8 +2449,8 @@ def api_live_country_stats():
     if cached:
         return jsonify(cached)
 
-    sc = _get_any_sc_service()
-    if not sc:
+    wmt = _get_any_wmt_service()
+    if not wmt:
         return jsonify({"error": "No GSC service available"}), 401
 
     try:
@@ -2366,7 +2466,7 @@ def api_live_country_stats():
             "rowLimit": 50,
             "dataState": "final",
         }
-        resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+        resp = wmt.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
 
         countries = []
         for row in resp.get("rows", []):
@@ -2400,7 +2500,7 @@ def api_live_all():
 
     # DB stats (always available)
     index_db = _load_json(DATA_DIR / "index_status.json", {})
-    account_quotas = _load_json(DATA_DIR / "account_quotas.json", {"accounts": []})
+    account_quotas = _load_account_quotas()
     daily_history = _load_json(DATA_DIR / "daily_history.json", [])
 
     results["pipeline"] = _compute_pipeline_stats(index_db)
@@ -2434,7 +2534,6 @@ def api_live_all():
     results["daily_history"] = daily_history[-90:]
 
     # Live GSC data (with graceful fallback)
-    sc = _get_any_sc_service()
     wmt = _get_any_wmt_service()
 
     if wmt:
@@ -2453,7 +2552,7 @@ def api_live_all():
         except Exception as e:
             errors["sitemaps"] = str(e)
 
-    if sc:
+    if wmt:
         end = (datetime.datetime.utcnow() - datetime.timedelta(days=3)).strftime("%Y-%m-%d")
 
         # Count ALL indexed pages using paginated Search Analytics queries
@@ -2470,7 +2569,7 @@ def api_live_all():
                     body = {"startDate": start90, "endDate": end, "dimensions": ["page"],
                             "aggregationType": "auto", "type": "web", "rowLimit": 25000,
                             "startRow": start_row, "dataState": "final"}
-                    resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+                    resp = wmt.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
                     rows = resp.get("rows", [])
                     if not rows:
                         break
@@ -2498,7 +2597,7 @@ def api_live_all():
         try:
             start90 = (datetime.datetime.utcnow() - datetime.timedelta(days=90)).strftime("%Y-%m-%d")
             body = {"startDate": start90, "endDate": end, "dimensions": ["searchAppearance"], "aggregationType": "auto", "type": "web", "rowLimit": 25, "dataState": "final"}
-            resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+            resp = wmt.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
             snippet_types = {}
             for row in resp.get("rows", []):
                 snippet_types[row["keys"][0]] = {"impressions": int(row.get("impressions",0)), "clicks": int(row.get("clicks",0)), "ctr": round(row.get("ctr",0)*100,2), "avg_position": round(row.get("position",0),1)}
@@ -2510,7 +2609,7 @@ def api_live_all():
         try:
             start28 = (datetime.datetime.utcnow() - datetime.timedelta(days=28)).strftime("%Y-%m-%d")
             body = {"startDate": start28, "endDate": end, "dimensions": ["date"], "aggregationType": "auto", "type": "web", "rowLimit": 25000, "dataState": "final"}
-            resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+            resp = wmt.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
             perf_daily = sorted([{"date": r["keys"][0], "clicks": int(r.get("clicks",0)), "impressions": int(r.get("impressions",0)), "ctr": round(r.get("ctr",0)*100,2), "position": round(r.get("position",0),1)} for r in resp.get("rows",[])], key=lambda x: x["date"])
             total_clicks = sum(d["clicks"] for d in perf_daily)
             total_impr = sum(d["impressions"] for d in perf_daily)
@@ -2527,7 +2626,7 @@ def api_live_all():
         try:
             start28 = (datetime.datetime.utcnow() - datetime.timedelta(days=28)).strftime("%Y-%m-%d")
             body = {"startDate": start28, "endDate": end, "dimensions": ["query"], "aggregationType": "auto", "type": "web", "rowLimit": 100, "dataState": "final"}
-            resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+            resp = wmt.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
             results["top_queries"] = [{"query": r["keys"][0], "clicks": int(r.get("clicks",0)), "impressions": int(r.get("impressions",0)), "ctr": round(r.get("ctr",0)*100,2), "position": round(r.get("position",0),1)} for r in resp.get("rows",[])]
         except Exception as e:
             errors["top_queries"] = str(e)
@@ -2536,7 +2635,7 @@ def api_live_all():
         try:
             start28 = (datetime.datetime.utcnow() - datetime.timedelta(days=28)).strftime("%Y-%m-%d")
             body = {"startDate": start28, "endDate": end, "dimensions": ["page"], "aggregationType": "auto", "type": "web", "rowLimit": 200, "dataState": "final"}
-            resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+            resp = wmt.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
             results["top_pages"] = [{"page": r["keys"][0], "clicks": int(r.get("clicks",0)), "impressions": int(r.get("impressions",0)), "ctr": round(r.get("ctr",0)*100,2), "position": round(r.get("position",0),1)} for r in resp.get("rows",[])]
         except Exception as e:
             errors["top_pages"] = str(e)
@@ -2545,7 +2644,7 @@ def api_live_all():
         try:
             start28 = (datetime.datetime.utcnow() - datetime.timedelta(days=28)).strftime("%Y-%m-%d")
             body = {"startDate": start28, "endDate": end, "dimensions": ["device"], "aggregationType": "auto", "type": "web", "rowLimit": 10, "dataState": "final"}
-            resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+            resp = wmt.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
             results["devices"] = {r["keys"][0]: {"clicks": int(r.get("clicks",0)), "impressions": int(r.get("impressions",0)), "ctr": round(r.get("ctr",0)*100,2), "position": round(r.get("position",0),1)} for r in resp.get("rows",[])}
         except Exception as e:
             errors["devices"] = str(e)
@@ -2554,13 +2653,13 @@ def api_live_all():
         try:
             start28 = (datetime.datetime.utcnow() - datetime.timedelta(days=28)).strftime("%Y-%m-%d")
             body = {"startDate": start28, "endDate": end, "dimensions": ["country"], "aggregationType": "auto", "type": "web", "rowLimit": 30, "dataState": "final"}
-            resp = sc.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
+            resp = wmt.searchanalytics().query(siteUrl=SITE_URL, body=body).execute()
             results["countries"] = [{"country": r["keys"][0], "clicks": int(r.get("clicks",0)), "impressions": int(r.get("impressions",0)), "ctr": round(r.get("ctr",0)*100,2), "position": round(r.get("position",0),1)} for r in resp.get("rows",[])]
         except Exception as e:
             errors["countries"] = str(e)
 
     results["errors"] = errors
-    results["is_live"] = bool(sc or wmt)
+    results["is_live"] = bool(_sc_v1 or wmt)
     results["fetched_at"] = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
     return jsonify(results)
 
@@ -2637,7 +2736,7 @@ def api_batch_submit():
     limit = min(int(data.get("limit", 50)), 200)
 
     index_db = _load_json(DATA_DIR / "index_status.json", {})
-    account_quotas = _load_json(DATA_DIR / "account_quotas.json", {"accounts": []})
+    account_quotas = _load_account_quotas()
 
     # Find eligible URLs
     eligible = []
@@ -2680,7 +2779,8 @@ def api_batch_submit():
 
     submitted = 0
     errors = []
-    today = datetime.datetime.utcnow().strftime("%Y-%m-%d")
+    hit_quota = False
+    today = _today_pt()
     for url in eligible:
         try:
             sc_service.urlNotifications().publish(
@@ -2692,16 +2792,21 @@ def api_batch_submit():
         except Exception as e:
             err = str(e)
             if "429" in err or "quota" in err.lower():
+                hit_quota = True
+                for acct in account_quotas.get("accounts", []):
+                    if acct.get("name") == acct_name:
+                        acct["index_used"] = acct.get("index_limit", 200)
+                        break
                 break
             errors.append({"url": url, "error": err[:100]})
 
     _save_json(DATA_DIR / "index_status.json", index_db)
 
-    # Update quota
-    for acct in account_quotas.get("accounts", []):
-        if acct.get("name") == acct_name:
-            acct["index_used"] = acct.get("index_used", 0) + submitted
-            break
+    if not hit_quota:
+        for acct in account_quotas.get("accounts", []):
+            if acct.get("name") == acct_name:
+                acct["index_used"] = acct.get("index_used", 0) + submitted
+                break
     _save_json(DATA_DIR / "account_quotas.json", account_quotas)
 
     return jsonify({
@@ -2711,6 +2816,362 @@ def api_batch_submit():
         "account": acct_name,
         "remaining_eligible": len(eligible) - submitted,
     })
+
+
+# ─────────────────────────────────────────────
+# BULK QUEUE — inspect + auto-submit
+# ─────────────────────────────────────────────
+_bulk_queue = {
+    "state": "idle",        # idle | running | paused | done
+    "urls": [],
+    "results": [],
+    "processed": 0,
+    "errors": 0,
+    "total": 0,
+    "current_url": "",
+}
+_bulk_lock = threading.Lock()
+_bulk_pause = threading.Event()
+_bulk_pause.set()
+_bulk_thread = None
+
+
+def _bulk_worker():
+    """Background worker: inspect each URL, submit if not indexed."""
+    queue = _bulk_queue
+    account_quotas = _load_account_quotas()
+    index_db = _load_json(DATA_DIR / "index_status.json", {})
+
+    idx_service = None
+    idx_acct = None
+    for acct in account_quotas.get("accounts", []):
+        if acct.get("index_used", 0) < acct.get("index_limit", 200):
+            cred_file = acct.get("credentials_file", "")
+            if cred_file and Path(cred_file).exists():
+                try:
+                    from google.oauth2 import service_account
+                    from googleapiclient.discovery import build as gbuild
+                    creds = service_account.Credentials.from_service_account_file(
+                        cred_file, scopes=["https://www.googleapis.com/auth/indexing"])
+                    idx_service = gbuild("indexing", "v3", credentials=creds, cache_discovery=False)
+                    idx_acct = acct
+                    break
+                except Exception:
+                    continue
+
+    insp_service = None
+    insp_acct_file = None
+    for acct in account_quotas.get("accounts", []):
+        if acct.get("inspect_used", 0) >= acct.get("inspect_limit", 2000):
+            continue
+        cred_file = acct.get("credentials_file", "")
+        if cred_file and Path(cred_file).exists():
+            try:
+                from google.oauth2 import service_account
+                from googleapiclient.discovery import build as gbuild
+                creds = service_account.Credentials.from_service_account_file(
+                    cred_file, scopes=["https://www.googleapis.com/auth/webmasters.readonly"])
+                insp_service = gbuild("searchconsole", "v1", credentials=creds, cache_discovery=False)
+                insp_acct_file = cred_file
+                break
+            except Exception:
+                continue
+
+    start_from = queue.get("processed", 0)
+    for i, url in enumerate(queue["urls"]):
+        if i < start_from:
+            continue
+        _bulk_pause.wait()
+        with _bulk_lock:
+            if queue["state"] not in ("running", "paused"):
+                break
+            queue["current_url"] = url
+
+        result = {"url": url, "status": "pending", "coverage": "", "action": "", "error": ""}
+
+        if not insp_service:
+            result["status"] = "error"
+            result["error"] = "No inspection service available"
+            with _bulk_lock:
+                queue["results"].append(result)
+                queue["errors"] += 1
+                queue["processed"] = i + 1
+            continue
+
+        try:
+            resp = insp_service.urlInspection().index().inspect(
+                body={"inspectionUrl": url, "siteUrl": SITE_URL}
+            ).execute()
+            idx_result = resp.get("inspectionResult", {}).get("indexStatusResult", {})
+            coverage = idx_result.get("coverageState", "unknown")
+            is_indexed = "indexed" in coverage.lower() and "not" not in coverage.lower()
+            result["coverage"] = coverage
+
+            for a in account_quotas.get("accounts", []):
+                if a.get("credentials_file") == insp_acct_file:
+                    a["inspect_used"] = a.get("inspect_used", 0) + 1
+                    break
+
+            today = _today_pt()
+            index_db[url] = {
+                "coverage": coverage,
+                "is_indexed": is_indexed,
+                "checked_at": today,
+                "last_crawl": idx_result.get("lastCrawlTime", ""),
+                "rich_results": [
+                    it.get("richResultType", "")
+                    for it in resp.get("inspectionResult", {}).get(
+                        "richResultsResult", {}).get("detectedItems", [])
+                ],
+            }
+
+            if is_indexed:
+                result["status"] = "indexed"
+                result["action"] = "Already indexed"
+            else:
+                if idx_service and idx_acct and idx_acct.get("index_used", 0) < idx_acct.get("index_limit", 200):
+                    try:
+                        idx_service.urlNotifications().publish(
+                            body={"url": url, "type": "URL_UPDATED"}
+                        ).execute()
+                        result["status"] = "submitted"
+                        result["action"] = "Submitted for indexing"
+                        index_db[url]["submitted_at"] = today
+                        idx_acct["index_used"] = idx_acct.get("index_used", 0) + 1
+                    except Exception as se:
+                        result["status"] = "inspect_only"
+                        result["action"] = f"Not indexed — submit failed: {str(se)[:60]}"
+                else:
+                    result["status"] = "inspect_only"
+                    result["action"] = "Not indexed — no submit quota"
+
+        except Exception as e:
+            err = str(e)
+            result["status"] = "error"
+            result["error"] = err[:120]
+            if "429" in err or "quota" in err.lower():
+                result["error"] = "Rate limited — quota exceeded"
+                for a in account_quotas.get("accounts", []):
+                    if a.get("credentials_file") == insp_acct_file:
+                        a["inspect_used"] = a["inspect_limit"]
+                        break
+                _save_json(DATA_DIR / "account_quotas.json", account_quotas)
+
+        with _bulk_lock:
+            queue["results"].append(result)
+            queue["processed"] = i + 1
+            if result["status"] == "error":
+                queue["errors"] += 1
+            queue["current_url"] = ""
+
+        if (i + 1) % 10 == 0:
+            _save_json(DATA_DIR / "account_quotas.json", account_quotas)
+            _save_json(DATA_DIR / "index_status.json", index_db)
+
+        time.sleep(DELAY)
+
+    _save_json(DATA_DIR / "index_status.json", index_db)
+    _save_json(DATA_DIR / "account_quotas.json", account_quotas)
+
+    with _bulk_lock:
+        queue["state"] = "done"
+        queue["current_url"] = ""
+
+
+@app.route("/api/bulk-queue", methods=["POST"])
+@handle_errors
+def api_bulk_queue_start():
+    """Start bulk URL queue — inspect each, submit non-indexed."""
+    data = request.get_json() or {}
+    urls = data.get("urls", [])
+    urls = [u.strip() for u in urls if u.strip() and u.strip().startswith("http")]
+
+    if not urls:
+        return jsonify({"error": "No valid URLs provided"}), 400
+    if len(urls) > 500:
+        urls = urls[:500]
+
+    with _bulk_lock:
+        if _bulk_queue["state"] in ("running", "paused"):
+            return jsonify({"error": "Queue already active — stop or clear it first"}), 409
+        _bulk_queue.update({
+            "state": "running",
+            "urls": urls,
+            "results": [],
+            "processed": 0,
+            "errors": 0,
+            "total": len(urls),
+            "current_url": "",
+        })
+    _bulk_pause.set()
+    global _bulk_thread
+    _bulk_thread = threading.Thread(target=_bulk_worker, daemon=True)
+    _bulk_thread.start()
+    return jsonify({"ok": True, "queued": len(urls)})
+
+
+@app.route("/api/bulk-queue/status")
+@handle_errors
+def api_bulk_queue_status():
+    """Poll bulk queue progress."""
+    with _bulk_lock:
+        return jsonify({
+            "state": _bulk_queue["state"],
+            "total": _bulk_queue["total"],
+            "processed": _bulk_queue["processed"],
+            "errors": _bulk_queue["errors"],
+            "current_url": _bulk_queue["current_url"],
+            "results": _bulk_queue["results"],
+        })
+
+
+@app.route("/api/bulk-queue/pause", methods=["POST"])
+@handle_errors
+def api_bulk_queue_pause():
+    """Pause the running bulk queue."""
+    with _bulk_lock:
+        if _bulk_queue["state"] != "running":
+            return jsonify({"error": "Queue not running"}), 400
+        _bulk_queue["state"] = "paused"
+    _bulk_pause.clear()
+    return jsonify({"ok": True})
+
+
+@app.route("/api/bulk-queue/resume", methods=["POST"])
+@handle_errors
+def api_bulk_queue_resume():
+    """Resume the paused bulk queue."""
+    global _bulk_thread
+    with _bulk_lock:
+        if _bulk_queue["state"] != "paused":
+            return jsonify({"error": "Queue not paused"}), 400
+        _bulk_queue["state"] = "running"
+    _bulk_pause.set()
+    if _bulk_thread is None or not _bulk_thread.is_alive():
+        _bulk_thread = threading.Thread(target=_bulk_worker, daemon=True)
+        _bulk_thread.start()
+    return jsonify({"ok": True})
+
+
+@app.route("/api/bulk-queue/stop", methods=["POST"])
+@handle_errors
+def api_bulk_queue_stop():
+    """Stop and clear the bulk queue."""
+    with _bulk_lock:
+        _bulk_queue["state"] = "stopped"
+        _bulk_queue["current_url"] = ""
+    _bulk_pause.set()
+    return jsonify({"ok": True})
+
+
+@app.route("/api/bulk-queue/clear", methods=["POST"])
+@handle_errors
+def api_bulk_queue_clear():
+    """Clear queue data and reset to idle."""
+    with _bulk_lock:
+        _bulk_queue.update({
+            "state": "idle",
+            "urls": [],
+            "results": [],
+            "processed": 0,
+            "errors": 0,
+            "total": 0,
+            "current_url": "",
+        })
+    return jsonify({"ok": True})
+
+
+@app.route("/api/extension/gsc-data", methods=["GET"])
+@handle_errors
+def api_extension_gsc_data_get():
+    """Return the latest scraped GSC data from the extension."""
+    data = _load_json(DATA_DIR / "extension_gsc_data.json", {})
+    return jsonify(data)
+
+
+@app.route("/api/extension/gsc-data", methods=["POST"])
+@handle_errors
+def api_extension_gsc_data():
+    """Receive scraped GSC data from the Chrome extension and save it."""
+    data = request.get_json() or {}
+    from datetime import datetime as dt
+    data["source"] = "chrome_extension"
+    data["received_at"] = dt.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    _save_json(DATA_DIR / "extension_gsc_data.json", data)
+
+    reports = _load_json(DATA_DIR / "gsc_reports.json", {})
+    if data.get("pages"):
+        p = data["pages"]
+        if p.get("indexed"): reports["indexed_count"] = p["indexed"]
+        if p.get("notIndexed"): reports["not_indexed_count"] = p["notIndexed"]
+    if data.get("performance"):
+        perf = data["performance"]
+        if perf.get("clicks"): reports["total_clicks"] = perf["clicks"]
+        if perf.get("impressions"): reports["total_impressions"] = perf["impressions"]
+        if perf.get("ctr"): reports["avg_ctr"] = perf["ctr"]
+        if perf.get("position"): reports["avg_position"] = perf["position"]
+    if data.get("merchantListings"):
+        ml = data["merchantListings"]
+        reports["merchant_valid"] = ml.get("valid", "")
+        reports["merchant_errors"] = ml.get("error", "")
+    if data.get("productSnippets"):
+        ps = data["productSnippets"]
+        reports["product_snippet_valid"] = ps.get("valid", "")
+        reports["product_snippet_errors"] = ps.get("error", "")
+    if data.get("reviewSnippets"):
+        rs = data["reviewSnippets"]
+        reports["review_snippet_valid"] = rs.get("valid", "")
+        reports["review_snippet_errors"] = rs.get("error", "")
+    if data.get("links"):
+        lk = data["links"]
+        reports["external_links"] = lk.get("externalLinks", "")
+        reports["internal_links"] = lk.get("internalLinks", "")
+    reports["last_updated"] = dt.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    _save_json(DATA_DIR / "gsc_reports.json", reports)
+
+    return jsonify({"ok": True, "saved": list(data.keys())})
+
+
+@app.route("/api/extension/bulk-results", methods=["POST"])
+@handle_errors
+def api_extension_bulk_results():
+    """Receive bulk indexing results from the Chrome extension."""
+    data = request.get_json() or {}
+    from datetime import datetime as dt
+    data["received_at"] = dt.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    _save_json(DATA_DIR / "bulk_indexing_results.json", data)
+
+    # Update index_status.json with inspection results
+    index_db = _load_json(DATA_DIR / "index_status.json", {})
+    for r in data.get("results", []):
+        url = r.get("url", "")
+        if not url:
+            continue
+        status = r.get("status", "")
+        index_db[url] = {
+            "is_indexed": status == "indexed",
+            "coverage": r.get("coverage", ""),
+            "status": status,
+            "action": r.get("action", ""),
+            "rich_results": r.get("richResults", []),
+            "last_crawl": r.get("lastCrawl", ""),
+            "checked_at": _today_pt(),
+        }
+    _save_json(DATA_DIR / "index_status.json", index_db)
+
+    return jsonify({
+        "ok": True,
+        "total": len(data.get("results", [])),
+        "indexed": sum(1 for r in data.get("results", []) if r.get("status") == "indexed"),
+    })
+
+
+@app.route("/api/bulk-results")
+@handle_errors
+def api_bulk_results():
+    """Return the latest bulk indexing results."""
+    data = _load_json(DATA_DIR / "bulk_indexing_results.json", {})
+    return jsonify(data)
 
 
 @app.route("/api/classifications")
