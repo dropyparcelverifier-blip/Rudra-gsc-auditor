@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rudra GSC Bulk Indexing</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">R</div>
+      <div>
+        <div class="header-title">GSC Bulk Indexing Tool</div>
+        <div class="header-sub">Automated URL inspection & indexing requests</div>
+      </div>
+    </div>
+    <div id="statusBadge" class="badge badge-idle">
+      <span class="dot"></span>
+      <span id="statusText">Ready</span>
+    </div>
+  </header>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="queue">Bulk Indexing</button>
+    <button class="tab" data-tab="data">GSC Data</button>
+  </div>
+
+  <!-- Tab: Bulk Indexing Queue -->
+  <div id="tab-queue" class="tab-content active">
+    <section class="card">
+      <div class="section-header">
+        <span class="dot-blue"></span>
+        <h2>URL MANAGEMENT</h2>
+      </div>
+      <textarea id="urlInput" placeholder="Paste URLs, one per line&#10;https://rudraretails.com/products/example-1&#10;https://rudraretails.com/products/example-2"></textarea>
+      <div class="btn-row">
+        <button id="btnAdd" class="btn btn-outline">Add to Queue</button>
+        <button id="btnImport" class="btn btn-outline">&#8593; Import CSV</button>
+        <button id="btnClear" class="btn btn-outline">Clear Data</button>
+      </div>
+      <div class="btn-row">
+        <button id="btnStart" class="btn btn-primary">Start Queue</button>
+        <button id="btnPause" class="btn btn-warn" style="display:none">&#9646;&#9646; Pause</button>
+        <button id="btnResume" class="btn btn-success" style="display:none">&#9654; Resume</button>
+        <button id="btnStop" class="btn btn-danger" style="display:none">&#9632; Stop</button>
+      </div>
+      <p class="hint">Need the format? <a id="btnSample" href="#">Download sample CSV</a></p>
+      <input type="file" id="fileInput" accept=".csv,.txt" style="display:none">
+    </section>
+
+    <section id="statsSection" class="card" style="display:none">
+      <div class="section-header">
+        <span class="dot-blue pulse"></span>
+        <h2>PROCESSING STATS</h2>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-num blue" id="statQueued">0</div>
+          <div class="stat-label">Queued</div>
+        </div>
+        <div class="stat-box stat-green">
+          <div class="stat-num green" id="statProcessed">0</div>
+          <div class="stat-label">Processed</div>
+        </div>
+        <div class="stat-box stat-red">
+          <div class="stat-num red" id="statErrors">0</div>
+          <div class="stat-label">Errors</div>
+        </div>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-text">
+        <span id="progressLabel">0 of 0 URLs finished · 0 still in queue</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div id="currentUrl" class="current-url" style="display:none">
+        <span class="spinner"></span>
+        Now processing: <span id="currentUrlText"></span>
+      </div>
+    </section>
+
+    <section id="resultsSection" class="card" style="display:none">
+      <div class="section-header">
+        <span class="dot-indigo"></span>
+        <h2>RESULTS</h2>
+        <div class="result-counts">
+          <span class="rc-green" id="rcIndexed">0 indexed</span>
+          <span class="rc-blue" id="rcSubmitted">0 submitted</span>
+          <span class="rc-red" id="rcErrors">0 errors</span>
+        </div>
+      </div>
+      <div class="results-table-wrap">
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>URL</th>
+              <th>Coverage</th>
+              <th>Status</th>
+              <th>Rich Results</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Tab: GSC Data -->
+  <div id="tab-data" class="tab-content">
+    <section class="card">
+      <div class="section-header">
+        <span class="dot-blue"></span>
+        <h2>FETCH GSC DATA</h2>
+        <button id="btnFetchAll" class="btn btn-primary btn-sm" style="margin-left:auto">Fetch All</button>
+      </div>
+      <p class="hint" style="margin-bottom:10px">Scrape live data from GSC, auto-sends to dashboard.</p>
+      <div class="settings-row">
+        <label class="settings-label">Dashboard API URL (Flask, port 5001)</label>
+        <input type="text" id="dashboardUrl" class="settings-input" value="http://localhost:5001" placeholder="http://localhost:5001">
+        <button id="btnSaveUrl" class="btn btn-outline btn-sm">Save</button>
+      </div>
+
+      <!-- Fetch All Progress -->
+      <div id="fetchAllProgress" style="display:none;margin-bottom:10px">
+        <div class="progress-bar">
+          <div class="progress-fill" id="fetchAllFill"></div>
+        </div>
+        <div class="progress-text" style="margin-top:4px">
+          <span id="fetchAllLabel">Fetching...</span>
+          <span id="fetchAllPct">0%</span>
+        </div>
+      </div>
+
+      <div class="data-grid">
+        <button class="data-btn" id="btnScrapePages" data-msg="SCRAPE_PAGES">
+          <span class="data-icon">&#128196;</span>
+          <span class="data-title">Pages Report</span>
+          <span class="data-desc">Indexed / not indexed & reasons</span>
+        </button>
+        <button class="data-btn" id="btnScrapePerf" data-msg="SCRAPE_PERFORMANCE">
+          <span class="data-icon">&#128200;</span>
+          <span class="data-title">Performance</span>
+          <span class="data-desc">Clicks, impressions, CTR, position</span>
+        </button>
+        <button class="data-btn" id="btnScrapeEnhancements" data-msg="SCRAPE_ENHANCEMENTS">
+          <span class="data-icon">&#11088;</span>
+          <span class="data-title">Enhancements</span>
+          <span class="data-desc">All enhancement types overview</span>
+        </button>
+        <button class="data-btn" id="btnScrapeMerchant" data-msg="SCRAPE_MERCHANT">
+          <span class="data-icon">&#128722;</span>
+          <span class="data-title">Merchant Listings</span>
+          <span class="data-desc">Valid, errors, warnings & issues</span>
+        </button>
+        <button class="data-btn" id="btnScrapeProduct" data-msg="SCRAPE_PRODUCT_SNIPPETS">
+          <span class="data-icon">&#128230;</span>
+          <span class="data-title">Product Snippets</span>
+          <span class="data-desc">Product structured data status</span>
+        </button>
+        <button class="data-btn" id="btnScrapeReview" data-msg="SCRAPE_REVIEW_SNIPPETS">
+          <span class="data-icon">&#128172;</span>
+          <span class="data-title">Review Snippets</span>
+          <span class="data-desc">Review structured data status</span>
+        </button>
+        <button class="data-btn" id="btnScrapeVideos" data-msg="SCRAPE_VIDEOS">
+          <span class="data-icon">&#127909;</span>
+          <span class="data-title">Videos</span>
+          <span class="data-desc">Video indexing & errors</span>
+        </button>
+        <button class="data-btn" id="btnScrapeLinks" data-msg="SCRAPE_LINKS">
+          <span class="data-icon">&#128279;</span>
+          <span class="data-title">Links</span>
+          <span class="data-desc">External & internal links report</span>
+        </button>
+        <button class="data-btn" id="btnScrapeSitemaps" data-msg="SCRAPE_SITEMAPS">
+          <span class="data-icon">&#128506;</span>
+          <span class="data-title">Sitemaps</span>
+          <span class="data-desc">Submitted sitemaps & status</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Scraped Data Results -->
+    <section id="dataResults" class="card" style="display:none">
+      <div class="section-header">
+        <span class="dot-indigo"></span>
+        <h2 id="dataResultsTitle">RESULTS</h2>
+        <button id="btnExportData" class="btn btn-outline btn-sm">Export JSON</button>
+      </div>
+      <div id="dataResultsContent" class="data-results-content"></div>
+    </section>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
