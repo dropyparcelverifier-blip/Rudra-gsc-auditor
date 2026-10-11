@@ -19,16 +19,25 @@ const iconBgMap = {
 
 export default function StatCard({ label, value, color = 'blue', icon: Icon, delta, subtitle }) {
   return (
-    <div className={clsx('rounded-xl border p-4 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5', colorMap[color])}>
+    <div className={clsx(
+      'group rounded-xl border p-4 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 cursor-default',
+      colorMap[color]
+    )}>
       <div className="flex items-start justify-between">
-        <div>
+        <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-wider opacity-70">{label}</p>
-          <p className="mt-1 text-2xl font-extrabold">{typeof value === 'number' ? value.toLocaleString() : value}</p>
-          {subtitle && <p className="mt-0.5 text-[10px] opacity-60">{subtitle}</p>}
-          {delta && <p className="mt-1 text-xs font-semibold">{delta}</p>}
+          <p className="mt-1 text-2xl font-extrabold tabular-nums">
+            {typeof value === 'number' ? value.toLocaleString() : (value ?? '—')}
+          </p>
+          {subtitle && <p className="mt-0.5 text-[10px] opacity-60 truncate">{subtitle}</p>}
+          {delta && (
+            <p className={clsx('mt-1 text-xs font-semibold', delta.startsWith('+') ? 'text-emerald-600' : delta.startsWith('-') ? 'text-red-600' : '')}>
+              {delta}
+            </p>
+          )}
         </div>
         {Icon && (
-          <div className={clsx('rounded-lg p-2.5', iconBgMap[color])}>
+          <div className={clsx('rounded-lg p-2.5 transition-transform duration-200 group-hover:scale-110', iconBgMap[color])}>
             <Icon size={18} />
           </div>
         )}

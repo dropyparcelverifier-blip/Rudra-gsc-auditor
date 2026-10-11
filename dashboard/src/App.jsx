@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { AlertTriangle, X } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import PipelineNotification from './components/PipelineNotification';
 import { useDashboard } from './hooks/useDashboard';
@@ -15,14 +17,19 @@ import ExtensionData from './pages/ExtensionData';
 
 export default function App() {
   const { data, loading, error, refresh, lastFetched } = useDashboard();
+  const [dismissed, setDismissed] = useState(false);
 
   return (
     <div className="flex min-h-screen bg-slate-50">
       <Sidebar />
       <main className="ml-56 flex-1">
-        {error && (
-          <div className="m-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
-            API Error: {error}
+        {error && !dismissed && (
+          <div className="mx-4 mt-4 flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-sm">
+            <AlertTriangle size={16} className="flex-shrink-0" />
+            <span className="flex-1 font-medium">API Error: {error}</span>
+            <button onClick={() => setDismissed(true)} className="rounded-md p-1 hover:bg-red-100 transition-colors">
+              <X size={14} />
+            </button>
           </div>
         )}
         <Routes>

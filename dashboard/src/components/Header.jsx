@@ -1,13 +1,21 @@
 import { RefreshCw, Zap } from 'lucide-react';
 
-export default function Header({ title, onRefresh, onSmartSync, loading }) {
+export default function Header({ title, subtitle, onRefresh, onSmartSync, loading, lastFetched }) {
+  const timeAgo = lastFetched ? formatTimeAgo(lastFetched) : null;
+
   return (
     <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3.5">
       <div className="flex items-center gap-3">
         <div className="h-6 w-1 rounded-full bg-gradient-to-b from-orange-500 to-red-500" />
-        <h1 className="text-lg font-bold text-slate-900">{title}</h1>
+        <div>
+          <h1 className="text-lg font-bold text-slate-900">{title}</h1>
+          {subtitle && <p className="text-xs text-slate-400">{subtitle}</p>}
+        </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
+        {timeAgo && (
+          <span className="text-[11px] text-slate-400">Updated {timeAgo}</span>
+        )}
         {onSmartSync && (
           <button onClick={onSmartSync} disabled={loading}
             className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:shadow-md disabled:opacity-50">
@@ -23,4 +31,14 @@ export default function Header({ title, onRefresh, onSmartSync, loading }) {
       </div>
     </header>
   );
+}
+
+function formatTimeAgo(date) {
+  const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
 }
