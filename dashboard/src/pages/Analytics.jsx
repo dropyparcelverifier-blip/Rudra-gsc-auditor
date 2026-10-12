@@ -1,9 +1,28 @@
 import { useState } from 'react';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
-import { TrendingUp, MousePointerClick, Eye, ArrowUpDown, ExternalLink, Search } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, PieChart, Pie, Cell } from 'recharts';
+import { TrendingUp, MousePointerClick, Eye, ArrowUpDown, ExternalLink, Search, Monitor, Smartphone, Tablet } from 'lucide-react';
 import Header from '../components/Header';
 import StatCard from '../components/StatCard';
 import DataSourceBadge from '../components/DataSourceBadge';
+
+const DEVICE_COLORS = { DESKTOP: '#3b82f6', MOBILE: '#22c55e', TABLET: '#a855f7' };
+const DEVICE_ICONS = { DESKTOP: Monitor, MOBILE: Smartphone, TABLET: Tablet };
+
+function ChartTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg text-xs">
+      <p className="font-semibold text-slate-700 mb-1">{label}</p>
+      {payload.map((p, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full" style={{ background: p.color }} />
+          <span className="text-slate-500">{p.name}:</span>
+          <span className="font-bold text-slate-800">{(p.value || 0).toLocaleString()}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function Analytics({ data, loading, refresh }) {
   const [tab, setTab] = useState('queries');
@@ -60,18 +79,28 @@ export default function Analytics({ data, loading, refresh }) {
 
         {/* Performance chart */}
         {perfDaily.length > 0 && (
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <div className="rounded-xl border border-slate-200 bg-white p-5">
             <h3 className="mb-3 text-sm font-semibold text-slate-700">Daily Performance (28 days)</h3>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={280}>
               <AreaChart data={perfDaily}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={d => d.slice(5)} />
-                <YAxis yAxisId="left" tick={{ fontSize: 10 }} />
-                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} />
-                <Tooltip />
-                <Legend />
-                <Area yAxisId="left" type="monotone" dataKey="clicks" stroke="#3b82f6" fill="#dbeafe" name="Clicks" />
-                <Area yAxisId="right" type="monotone" dataKey="impressions" stroke="#a855f7" fill="#f3e8ff" name="Impressions" />
+                <defs>
+                  <linearGradient id="aClicksGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.02} />
+                  </linearGradient>
+                  <linearGradient id="aImprGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#a855f7" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#a855f7" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#94a3b8' }} tickFormatter={d => d.slice(5)} axisLine={false} />
+                <YAxis yAxisId="left" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} />
+                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} />
+                <Tooltip content={<ChartTooltip />} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Area yAxisId="left" type="monotone" dataKey="clicks" stroke="#3b82f6" fill="url(#aClicksGrad)" name="Clicks" strokeWidth={2.5} dot={false} activeDot={{ r: 5, stroke: '#3b82f6', strokeWidth: 2, fill: '#fff' }} />
+                <Area yAxisId="right" type="monotone" dataKey="impressions" stroke="#a855f7" fill="url(#aImprGrad)" name="Impressions" strokeWidth={2.5} dot={false} activeDot={{ r: 5, stroke: '#a855f7', strokeWidth: 2, fill: '#fff' }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -79,23 +108,42 @@ export default function Analytics({ data, loading, refresh }) {
 
         {/* Device breakdown */}
         {Object.keys(devices).length > 0 && (
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <h3 className="mb-3 text-sm font-semibold text-slate-700">Device Breakdown <DataSourceBadge source="live" /></h3>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {Object.entries(devices).map(([device, stats]) => {
-                const totalClicks = Object.values(devices).reduce((s, d) => s + d.clicks, 0);
-                const pct = totalClicks ? (stats.clicks / totalClicks * 100).toFixed(1) : 0;
-                return (
-                  <div key={device} className="rounded-lg border border-slate-100 bg-slate-50 p-3">
-                    <p className="text-xs font-semibold text-slate-600">{device}</p>
-                    <p className="mt-1 text-lg font-extrabold text-slate-800">{stats.clicks.toLocaleString()} <span className="text-xs font-normal text-slate-400">clicks</span></p>
-                    <p className="text-[10px] text-slate-500">{stats.impressions.toLocaleString()} impr &bull; {stats.ctr}% CTR &bull; pos {stats.position}</p>
-                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200">
-                      <div className="h-full rounded-full bg-blue-500" style={{ width: `${pct}%` }} />
+          <div className="rounded-xl border border-slate-200 bg-white p-5">
+            <h3 className="mb-4 text-sm font-semibold text-slate-700">Device Breakdown <DataSourceBadge source="live" className="ml-1" /></h3>
+            <div className="flex gap-6 items-center">
+              <div className="flex-shrink-0">
+                <ResponsiveContainer width={110} height={110}>
+                  <PieChart>
+                    <Pie data={Object.entries(devices).map(([d, s]) => ({ name: d, value: s.clicks }))}
+                      dataKey="value" cx="50%" cy="50%" innerRadius={30} outerRadius={48}
+                      paddingAngle={3} strokeWidth={0}>
+                      {Object.keys(devices).map((d, i) => <Cell key={i} fill={DEVICE_COLORS[d] || '#6366f1'} />)}
+                    </Pie>
+                    <Tooltip formatter={v => v.toLocaleString()} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {Object.entries(devices).map(([device, stats]) => {
+                  const Icon = DEVICE_ICONS[device] || Monitor;
+                  const totalClicks = Object.values(devices).reduce((s, d) => s + (d.clicks || 0), 0);
+                  const pct = totalClicks ? (stats.clicks / totalClicks * 100).toFixed(1) : 0;
+                  return (
+                    <div key={device} className="rounded-lg border border-slate-100 bg-slate-50 p-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Icon size={14} style={{ color: DEVICE_COLORS[device] }} />
+                        <span className="text-xs font-semibold text-slate-600">{device}</span>
+                        <span className="ml-auto text-[10px] font-bold" style={{ color: DEVICE_COLORS[device] }}>{pct}%</span>
+                      </div>
+                      <p className="text-lg font-extrabold text-slate-800">{(stats.clicks || 0).toLocaleString()}</p>
+                      <p className="text-[10px] text-slate-500">{(stats.impressions || 0).toLocaleString()} impr &bull; {stats.ctr || 0}% CTR &bull; pos {stats.position || '—'}</p>
+                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200">
+                        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: DEVICE_COLORS[device] }} />
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
@@ -145,12 +193,12 @@ export default function Analytics({ data, loading, refresh }) {
                       <span className="text-slate-800">{r.query}</span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-right font-semibold text-blue-700">{r.clicks.toLocaleString()}</td>
-                  <td className="px-3 py-2 text-right">{r.impressions.toLocaleString()}</td>
-                  <td className="px-3 py-2 text-right">{r.ctr}%</td>
+                  <td className="px-3 py-2 text-right font-semibold text-blue-700">{(r.clicks || 0).toLocaleString()}</td>
+                  <td className="px-3 py-2 text-right">{(r.impressions || 0).toLocaleString()}</td>
+                  <td className="px-3 py-2 text-right">{r.ctr || 0}%</td>
                   <td className="px-3 py-2 text-right">
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${r.position <= 10 ? 'bg-emerald-100 text-emerald-700' : r.position <= 20 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
-                      {r.position}
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${(r.position || 0) <= 10 ? 'bg-emerald-100 text-emerald-700' : (r.position || 0) <= 20 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+                      {r.position || '—'}
                     </span>
                   </td>
                 </tr>
@@ -170,7 +218,7 @@ export default function Analytics({ data, loading, refresh }) {
                     <span className="w-5 text-center font-bold text-slate-400">{i + 1}</span>
                     <span className="font-semibold text-slate-700">{c.country}</span>
                   </span>
-                  <span className="text-slate-500">{c.clicks.toLocaleString()} clicks &bull; {c.impressions.toLocaleString()} impr &bull; {c.ctr}% CTR</span>
+                  <span className="text-slate-500">{(c.clicks || 0).toLocaleString()} clicks &bull; {(c.impressions || 0).toLocaleString()} impr &bull; {c.ctr || 0}% CTR</span>
                 </div>
               ))}
             </div>
