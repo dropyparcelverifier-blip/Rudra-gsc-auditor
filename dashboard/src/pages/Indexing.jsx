@@ -215,7 +215,7 @@ export default function Indexing({ data, loading, refresh }) {
                     <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
                       <td className="max-w-xs truncate px-3 py-1.5">
                         <a href={u.url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-600 hover:underline">
-                          <span className="truncate">{u.url?.replace('https://www.rudraretails.com/', '/').replace('https://rudraretails.com/', '/')}</span>
+                          <span className="truncate">{u.url?.replace(/^https?:\/\/[^/]+/, '')}</span>
                           <ExternalLink size={10} className="flex-shrink-0" />
                         </a>
                       </td>
@@ -279,7 +279,7 @@ export default function Indexing({ data, loading, refresh }) {
                         <span className="text-xs font-bold text-slate-800">{entry.value.toLocaleString()}</span>
                         <span className="text-[10px] text-slate-400">{pct}%</span>
                         {isSubmittable && (
-                          <span role="button" tabIndex={0} onClick={(e) => { e.stopPropagation(); handleBatchSubmit(entry.name.split(' ')[0]); }}
+                          <span role="button" tabIndex={0} onClick={(e) => { e.stopPropagation(); handleBatchSubmit(entry.name); }}
                             className="flex items-center gap-0.5 rounded bg-purple-600 px-2 py-0.5 text-[9px] font-semibold text-white hover:bg-purple-700 cursor-pointer">
                             <Send size={8} /> Submit
                           </span>
