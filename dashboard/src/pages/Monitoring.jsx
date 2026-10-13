@@ -20,7 +20,7 @@ function ClassificationPanel({ classData }) {
   ];
 
   const coverageRows = Object.entries(coverage_actions || {})
-    .sort((a, b) => b[1].count - a[1].count)
+    .sort((a, b) => (b[1].count || 0) - (a[1].count || 0))
     .slice(0, 12);
 
   return (
@@ -69,7 +69,7 @@ function ClassificationPanel({ classData }) {
                   return (
                     <tr key={cov} className={`border-b border-slate-50 ${rowBg}`}>
                       <td className="px-3 py-1.5 font-medium text-slate-700">{cov}</td>
-                      <td className="px-3 py-1.5 text-right font-semibold text-slate-800">{info.count.toLocaleString()}</td>
+                      <td className="px-3 py-1.5 text-right font-semibold text-slate-800">{(info.count || 0).toLocaleString()}</td>
                       <td className="px-3 py-1.5 text-center">
                         {info.inspect !== false ? <CheckCircle size={14} className="mx-auto text-blue-500" /> : <SkipForward size={14} className="mx-auto text-slate-300" />}
                       </td>
@@ -119,7 +119,7 @@ export default function Monitoring() {
 
   if (!data) return <div className="flex h-96 items-center justify-center text-slate-400">Loading monitoring data...</div>;
 
-  const { scan_progress: sp, freshness, coverage_breakdown, changes_today, recent_changes, daily_history } = data;
+  const { scan_progress: sp = {}, freshness, coverage_breakdown, changes_today, recent_changes, daily_history } = data;
   const coverageData = Object.entries(coverage_breakdown || {}).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
   const historyData = (daily_history || []).slice(-14);
   const freshTotal = Object.values(freshness || {}).reduce((s, v) => s + v, 0);
@@ -240,7 +240,7 @@ export default function Monitoring() {
                     <BarChart data={coverageData} layout="vertical" margin={{ left: 10, right: 20 }}>
                       <XAxis type="number" tick={{ fontSize: 10 }} />
                       <YAxis type="category" dataKey="name" width={180} tick={{ fontSize: 10 }} />
-                      <Tooltip formatter={(v) => v.toLocaleString()} />
+                      <Tooltip formatter={(v) => (v ?? 0).toLocaleString()} />
                       <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
                         {coverageData.map((entry, i) => {
                           const n = entry.name.toLowerCase();
@@ -284,10 +284,10 @@ export default function Monitoring() {
                   <p className="text-xs text-red-700 mb-3">These URLs were previously indexed but Google dropped them. They will be re-checked and auto-submitted on the next pipeline run.</p>
                   <div className="space-y-1 max-h-40 overflow-y-auto">
                     {dropped.slice(0, 20).map((ch, i) => {
-                      const urlShort = ch.url.replace('https://rudraretails.com/', '/').replace('https://www.rudraretails.com/', '/');
+                      const urlShort = (ch.url || '').replace('https://rudraretails.com/', '/').replace('https://www.rudraretails.com/', '/');
                       return (
                         <div key={i} className="flex items-center justify-between text-xs bg-white rounded px-3 py-1.5 border border-red-100">
-                          <span className="text-red-800 font-medium truncate max-w-[60%]" title={ch.url}>{urlShort}</span>
+                          <span className="text-red-800 font-medium truncate max-w-[60%]" title={ch.url || ''}>{urlShort}</span>
                           <span className="text-red-500 flex items-center gap-1">
                             <span>{ch.old}</span>
                             <ArrowRight size={10} />
@@ -328,7 +328,7 @@ export default function Monitoring() {
                           : 'text-amber-700 bg-amber-50';
                         const typeLabel = ch.type === 'newly_indexed' ? 'INDEXED'
                           : ch.type === 'dropped_from_index' ? 'DROPPED' : 'CHANGED';
-                        const urlShort = ch.url.replace('https://rudraretails.com/', '/').replace('https://www.rudraretails.com/', '/');
+                        const urlShort = (ch.url || '').replace('https://rudraretails.com/', '/').replace('https://www.rudraretails.com/', '/');
                         return (
                           <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
                             <td className="px-3 py-1.5 text-slate-500 whitespace-nowrap">{ch.date}</td>
@@ -337,7 +337,7 @@ export default function Monitoring() {
                                 {typeLabel}
                               </span>
                             </td>
-                            <td className="px-3 py-1.5 max-w-xs truncate text-slate-700" title={ch.url}>{urlShort}</td>
+                            <td className="px-3 py-1.5 max-w-xs truncate text-slate-700" title={ch.url || ''}>{urlShort}</td>
                             <td className="px-3 py-1.5 text-slate-500">
                               <span className="inline-flex items-center gap-1">
                                 <span className="truncate max-w-[140px]">{ch.old}</span>
