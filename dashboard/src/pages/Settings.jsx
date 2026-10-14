@@ -24,6 +24,7 @@ export default function Settings() {
     (async () => {
       try {
         const res = await fetch('/api/gsc-reports');
+        if (!res.ok) throw new Error(`Server error ${res.status}`);
         const d = await res.json();
         setForm(d);
       } catch (e) { console.error(e); }
@@ -34,11 +35,12 @@ export default function Settings() {
     setLoading(true);
     setSaved(false);
     try {
-      await fetch('/api/gsc-reports', {
+      const res = await fetch('/api/gsc-reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
+      if (!res.ok) throw new Error(`Server error ${res.status}`);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (e) { alert('Error saving: ' + e.message); }

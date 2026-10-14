@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Server, RefreshCw } from 'lucide-react';
 import Header from '../components/Header';
+import { api } from '../lib/api';
 
 export default function Accounts() {
   const [accounts, setAccounts] = useState([]);
@@ -9,8 +10,7 @@ export default function Accounts() {
   const fetchAccounts = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/accounts');
-      const d = await res.json();
+      const d = await api.getAccounts();
       setAccounts(d.accounts || []);
     } catch (e) { console.error(e); }
     setLoading(false);
@@ -65,20 +65,20 @@ export default function Accounts() {
                     <div className={`h-full rounded-full transition-all ${barColor(a.inspect_used, a.inspect_limit)}`}
                       style={{ width: `${pct(a.inspect_used, a.inspect_limit)}%` }} />
                   </div>
-                  <p className="mt-1 text-[10px] text-slate-400">{a.inspect_limit - a.inspect_used} remaining</p>
+                  <p className="mt-1 text-[10px] text-slate-400">{(a.inspect_limit || 0) - (a.inspect_used || 0)} remaining</p>
                 </div>
 
                 {/* Index quota */}
                 <div>
                   <div className="mb-1 flex justify-between text-xs">
                     <span className="font-semibold text-slate-600">Indexing API</span>
-                    <span className="text-slate-500">{a.index_used} / {a.index_limit} ({pct(a.index_used, a.index_limit)}%)</span>
+                    <span className="text-slate-500">{a.index_used || 0} / {a.index_limit || 0} ({pct(a.index_used, a.index_limit)}%)</span>
                   </div>
                   <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
                     <div className={`h-full rounded-full transition-all ${barColor(a.index_used, a.index_limit)}`}
                       style={{ width: `${pct(a.index_used, a.index_limit)}%` }} />
                   </div>
-                  <p className="mt-1 text-[10px] text-slate-400">{a.index_limit - a.index_used} remaining</p>
+                  <p className="mt-1 text-[10px] text-slate-400">{(a.index_limit || 0) - (a.index_used || 0)} remaining</p>
                 </div>
               </div>
             </div>
@@ -91,11 +91,11 @@ export default function Accounts() {
             <h3 className="mb-2 text-sm font-semibold text-slate-700">Combined Quotas</h3>
             <div className="grid grid-cols-2 gap-4 text-center">
               <div>
-                <p className="text-2xl font-extrabold text-blue-700">{accounts.reduce((s, a) => s + (a.inspect_limit - a.inspect_used), 0).toLocaleString()}</p>
+                <p className="text-2xl font-extrabold text-blue-700">{accounts.reduce((s, a) => s + ((a.inspect_limit || 0) - (a.inspect_used || 0)), 0).toLocaleString()}</p>
                 <p className="text-xs text-slate-500">Inspections remaining</p>
               </div>
               <div>
-                <p className="text-2xl font-extrabold text-orange-700">{accounts.reduce((s, a) => s + (a.index_limit - a.index_used), 0).toLocaleString()}</p>
+                <p className="text-2xl font-extrabold text-orange-700">{accounts.reduce((s, a) => s + ((a.index_limit || 0) - (a.index_used || 0)), 0).toLocaleString()}</p>
                 <p className="text-xs text-slate-500">Index submissions remaining</p>
               </div>
             </div>
