@@ -1,17 +1,17 @@
 {
-  "timestamp": "2026-10-07T16:26:17.888519",
+  "timestamp": "2026-10-08T16:27:10.060176",
   "total": 373,
-  "already_indexed": 299,
-  "submitted": 74,
+  "already_indexed": 295,
+  "submitted": 50,
   "submit_errors": 0,
+  "skipped_rate_limit": 0,
   "results": [
     {
       "url": "https://rudraretails.com/products/3m-blenderm-plastic-medical-tape-1-inch-5-yards-1-roll",
       "handle": "3m-blenderm-plastic-medical-tape-1-inch-5-yards-1-roll",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-09-26",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "<HttpError 500 when requesting https://searchconsole.googleapis.com/v1/urlInspection/index:inspect?a",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/3m-micropore-tan-surgical-tape-125cm-5-rolls-2",
@@ -32,11 +32,10 @@
     {
       "url": "https://rudraretails.com/products/always-daily-extra-protect-unscented-panty-liners-extra-long-116-count",
       "handle": "always-daily-extra-protect-unscented-panty-liners-extra-long-116-count",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-09-16",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T15:32:12.732316"
+      "coverage": "Submitted and indexed",
+      "last_crawl": "2026-10-07",
+      "is_indexed": true,
+      "index_submitted": false
     },
     {
       "url": "https://rudraretails.com/products/amlactin-daily-nourish-therapeutic-body-lotion-14-point-1-ounce-4",
@@ -45,7 +44,7 @@
       "last_crawl": "2026-08-29",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:32:24.175531"
+      "submitted_at": "2026-10-08T15:14:36.192515"
     },
     {
       "url": "https://rudraretails.com/products/aou-tone-up-dazzling-cream-01-white-100ml",
@@ -58,10 +57,9 @@
     {
       "url": "https://rudraretails.com/products/aquaphor-baby-diaper-rash-paste-maximum-strength-3-5-ounce-2",
       "handle": "aquaphor-baby-diaper-rash-paste-maximum-strength-3-5-ounce-2",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-07-24",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "The read operation timed out",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/aquaphor-baby-healing-cream-3-in-1-diaper-rash-cream",
@@ -70,7 +68,7 @@
       "last_crawl": "2026-07-24",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:32:50.303511"
+      "submitted_at": "2026-10-08T15:16:10.826213"
     },
     {
       "url": "https://rudraretails.com/products/aquaphor-baby-healing-ointment-7oz",
@@ -91,11 +89,9 @@
     {
       "url": "https://rudraretails.com/products/aquaphor-healing-ointment-advanced-therapy-14-oz-jar",
       "handle": "aquaphor-healing-ointment-advanced-therapy-14-oz-jar",
-      "coverage": "URL is unknown to Google",
-      "last_crawl": "Never",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T15:33:16.519213"
+      "coverage": "ERROR",
+      "error": "The read operation timed out",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/aquaphor-lip-repair-ointment-dry-chapped-lips-0-35-ounce-4",
@@ -120,7 +116,7 @@
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:33:42.188773"
+      "submitted_at": "2026-10-08T15:17:56.775061"
     },
     {
       "url": "https://rudraretails.com/products/aveda-men-pure-formance-grooming-clay-75-milliliters",
@@ -145,7 +141,7 @@
       "last_crawl": "2026-08-15",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:34:08.322514"
+      "submitted_at": "2026-10-08T15:18:22.484050"
     },
     {
       "url": "https://rudraretails.com/products/aveeno-baby-kids-curly-hair-conditioner-12-fluid-ounce-2",
@@ -154,7 +150,7 @@
       "last_crawl": "2026-07-25",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:34:16.895687"
+      "submitted_at": "2026-10-08T15:18:31.039001"
     },
     {
       "url": "https://rudraretails.com/products/aveeno-baby-kids-curly-hair-shampoo-shea-butter",
@@ -219,7 +215,7 @@
       "last_crawl": "2026-10-05",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:35:26.251092"
+      "submitted_at": "2026-10-08T15:19:38.784178"
     },
     {
       "url": "https://rudraretails.com/products/aveeno-skin-relief-intense-moisture-repair-cream-11-ounce-4",
@@ -244,7 +240,7 @@
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:35:55.426539"
+      "submitted_at": "2026-10-08T15:20:04.160825"
     },
     {
       "url": "https://rudraretails.com/products/based-bodyworks-leave-in-conditioner-santal-200ml-2",
@@ -277,7 +273,7 @@
       "last_crawl": "2026-08-15",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:36:29.341249"
+      "submitted_at": "2026-10-08T15:20:50.441025"
     },
     {
       "url": "https://rudraretails.com/products/bioswiss-kitty-cats-hydrocolloid-pimple-patches",
@@ -286,7 +282,7 @@
       "last_crawl": "2026-07-29",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:36:37.888963"
+      "submitted_at": "2026-10-08T15:21:11.433481"
     },
     {
       "url": "https://rudraretails.com/products/bitzee-doghouse-interactive-digital-pet-toy-4",
@@ -295,7 +291,7 @@
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:36:46.460017"
+      "submitted_at": "2026-10-08T15:21:38.178205"
     },
     {
       "url": "https://rudraretails.com/products/blackmask-hair-texture-powder-for-men",
@@ -304,13 +300,13 @@
       "last_crawl": "2026-09-01",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:36:55.193933"
+      "submitted_at": "2026-10-08T15:22:02.444967"
     },
     {
       "url": "https://rudraretails.com/products/blue-cross-professional-cuticle-remover-softener-lanolin",
       "handle": "blue-cross-professional-cuticle-remover-softener-lanolin",
       "coverage": "Submitted and indexed",
-      "last_crawl": "2026-08-14",
+      "last_crawl": "2026-10-07",
       "is_indexed": true,
       "index_submitted": false
     },
@@ -321,7 +317,7 @@
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:37:21.053557"
+      "submitted_at": "2026-10-08T15:22:20.202395"
     },
     {
       "url": "https://rudraretails.com/products/bruder-moist-heat-eye-compress-microwave-activated",
@@ -366,18 +362,16 @@
     {
       "url": "https://rudraretails.com/products/carmex-classic-medicated-lip-balm-pack-of-three",
       "handle": "carmex-classic-medicated-lip-balm-pack-of-three",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-09-03",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "<HttpError 500 when requesting https://searchconsole.googleapis.com/v1/urlInspection/index:inspect?a",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/celimax-pore-dark-spot-brightening-cream",
       "handle": "celimax-pore-dark-spot-brightening-cream",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-08-14",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "<HttpError 500 when requesting https://searchconsole.googleapis.com/v1/urlInspection/index:inspect?a",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/centrum-silver-women-50-plus-multivitamin-200-tablets",
@@ -386,7 +380,7 @@
       "last_crawl": "2026-09-30",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:38:29.857866"
+      "submitted_at": "2026-10-08T15:24:54.790119"
     },
     {
       "url": "https://rudraretails.com/products/cerave-acne-foaming-cream-cleanser-benzoyl-peroxide",
@@ -403,16 +397,14 @@
       "last_crawl": "2026-09-25",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:38:47.448713"
+      "submitted_at": "2026-10-08T15:25:18.459905"
     },
     {
       "url": "https://rudraretails.com/products/cerave-acne-treatment-salicylic-acid-cleanser-eight-ounce-4",
       "handle": "cerave-acne-treatment-salicylic-acid-cleanser-eight-ounce-4",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-08-15",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T15:38:55.989103"
+      "coverage": "ERROR",
+      "error": "The read operation timed out",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/cerave-am-facial-lotion-spf30",
@@ -441,10 +433,9 @@
     {
       "url": "https://rudraretails.com/products/cerave-eye-repair-cream",
       "handle": "cerave-eye-repair-cream",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-09-27",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "The read operation timed out",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/cerave-foaming-facial-cleanser-87ml",
@@ -453,7 +444,7 @@
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:39:42.016508"
+      "submitted_at": "2026-10-08T15:28:38.802743"
     },
     {
       "url": "https://rudraretails.com/products/cerave-gentle-hydrating-shampoo-ceramides-12-ounce",
@@ -470,15 +461,14 @@
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:39:59.145807"
+      "submitted_at": "2026-10-08T15:29:05.236463"
     },
     {
       "url": "https://rudraretails.com/products/cerave-hydrating-hyaluronic-acid-serum-one-ounce-4",
       "handle": "cerave-hydrating-hyaluronic-acid-serum-one-ounce-4",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-07-29",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "<HttpError 500 when requesting https://searchconsole.googleapis.com/v1/urlInspection/index:inspect?a",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/cerave-hydrating-mineral-sunscreen-spf-50-face-lotion",
@@ -495,7 +485,7 @@
       "last_crawl": "2026-08-02",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:40:24.055394"
+      "submitted_at": "2026-10-08T15:30:00.350658"
     },
     {
       "url": "https://rudraretails.com/products/cerave-moisturizing-cream-itch-relief-16-ounce-2",
@@ -504,7 +494,7 @@
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:40:32.608155"
+      "submitted_at": "2026-10-08T15:30:09.294901"
     },
     {
       "url": "https://rudraretails.com/products/cerave-oil-control-balancing-shampoo-12-ounce",
@@ -513,7 +503,7 @@
       "last_crawl": "2026-08-17",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:40:41.383010"
+      "submitted_at": "2026-10-08T15:30:17.842912"
     },
     {
       "url": "https://rudraretails.com/products/cerave-pm-facial-moisturizing-lotion",
@@ -530,7 +520,7 @@
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:40:58.343386"
+      "submitted_at": "2026-10-08T15:30:38.410912"
     },
     {
       "url": "https://rudraretails.com/products/cerave-sa-lotion-rough-and-bumpy-skin-8-ounce",
@@ -547,7 +537,7 @@
       "last_crawl": "2026-09-26",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:41:23.336667"
+      "submitted_at": "2026-10-08T15:30:55.484752"
     },
     {
       "url": "https://rudraretails.com/products/cerave-skin-renewing-night-cream-peptide-1-7-ounce",
@@ -585,7 +575,7 @@
       "url": "https://rudraretails.com/products/cetaphil-fast-rescue-acne-pimple-patches-24-count-2",
       "handle": "cetaphil-fast-rescue-acne-pimple-patches-24-count-2",
       "coverage": "Submitted and indexed",
-      "last_crawl": "2026-08-15",
+      "last_crawl": "2026-10-08",
       "is_indexed": true,
       "index_submitted": false
     },
@@ -596,7 +586,7 @@
       "last_crawl": "2026-09-27",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:42:13.873279"
+      "submitted_at": "2026-10-08T15:31:46.588212"
     },
     {
       "url": "https://rudraretails.com/products/cetaphil-healing-ointment-advanced-skin-protectant-tub-4",
@@ -605,7 +595,7 @@
       "last_crawl": "2026-08-15",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:42:22.493205"
+      "submitted_at": "2026-10-08T15:31:55.241848"
     },
     {
       "url": "https://rudraretails.com/products/cetaphil-redness-relieving-night-moisturizer-cream-3",
@@ -678,7 +668,7 @@
       "last_crawl": "2026-10-05",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:43:44.134409"
+      "submitted_at": "2026-10-08T15:33:11.917223"
     },
     {
       "url": "https://rudraretails.com/products/covergirl-simply-ageless-skin-perfector-essence-foundation-3",
@@ -707,11 +697,11 @@
     {
       "url": "https://rudraretails.com/products/doctors-best-alpha-lipoic-acid-600mg-60-veggie-capsules",
       "handle": "doctors-best-alpha-lipoic-acid-600mg-60-veggie-capsules",
-      "coverage": "Discovered - currently not indexed",
+      "coverage": "URL is unknown to Google",
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:44:18.885079"
+      "submitted_at": "2026-10-08T15:33:45.865649"
     },
     {
       "url": "https://rudraretails.com/products/doctors-best-bacopa-with-synapsa-cognitive-performance-supplement-60-veggie-capsules",
@@ -728,7 +718,7 @@
       "last_crawl": "2026-09-25",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:44:36.150020"
+      "submitted_at": "2026-10-08T15:34:03.420151"
     },
     {
       "url": "https://rudraretails.com/products/doctors-best-fully-active-b-complex-60-capsules-2",
@@ -745,7 +735,7 @@
       "last_crawl": "2026-09-28",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:44:53.544745"
+      "submitted_at": "2026-10-08T15:34:20.373315"
     },
     {
       "url": "https://rudraretails.com/products/doctors-best-fully-active-b12-1500-micrograms-capsules",
@@ -758,11 +748,11 @@
     {
       "url": "https://rudraretails.com/products/doctors-best-high-absorption-coq10-bioperine-100mg-120-capsules",
       "handle": "doctors-best-high-absorption-coq10-bioperine-100mg-120-capsules",
-      "coverage": "Discovered - currently not indexed",
+      "coverage": "URL is unknown to Google",
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:45:10.365649"
+      "submitted_at": "2026-10-08T15:34:37.497682"
     },
     {
       "url": "https://rudraretails.com/products/doctors-best-high-absorption-coq10-bioperine-100mg-120-softgels",
@@ -771,7 +761,7 @@
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:45:19.031392"
+      "submitted_at": "2026-10-08T15:34:46.290573"
     },
     {
       "url": "https://rudraretails.com/products/doctors-best-high-absorption-coq10-bioperine-200mg-capsules-3",
@@ -792,11 +782,9 @@
     {
       "url": "https://rudraretails.com/products/doctors-best-natural-vitamin-k2-mk7-60-vegetable-capsules-2",
       "handle": "doctors-best-natural-vitamin-k2-mk7-60-vegetable-capsules-2",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-09-30",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T15:45:44.367530"
+      "coverage": "ERROR",
+      "error": "<HttpError 500 when requesting https://searchconsole.googleapis.com/v1/urlInspection/index:inspect?a",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/dr-berg-vitamin-d3-k2-5000-iu-capsules",
@@ -817,27 +805,23 @@
     {
       "url": "https://rudraretails.com/products/eadem-le-chouchou-lip-softening-balm-butter-mochi",
       "handle": "eadem-le-chouchou-lip-softening-balm-butter-mochi",
-      "coverage": "Discovered - currently not indexed",
-      "last_crawl": "Never",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T15:46:10.020287"
+      "coverage": "ERROR",
+      "error": "The read operation timed out",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/elevit-prenatal-multivitamin-iodine-folic-acid-100-tablets",
       "handle": "elevit-prenatal-multivitamin-iodine-folic-acid-100-tablets",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-10-04",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "The read operation timed out",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/elf-lip-plumping-gloss-pink-cosmo-2",
       "handle": "elf-lip-plumping-gloss-pink-cosmo-2",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-07-27",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "The read operation timed out",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/elire-repair-eye-cream-ceramides-caffeine-15ml",
@@ -922,10 +906,9 @@
     {
       "url": "https://rudraretails.com/products/globe-ichthammol-ointment-twenty-percent-drawing-salve-one-ounce",
       "handle": "globe-ichthammol-ointment-twenty-percent-drawing-salve-one-ounce",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-09-14",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "<HttpError 500 when requesting https://searchconsole.googleapis.com/v1/urlInspection/index:inspect?a",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/gold-bond-retinol-overnight-lotion",
@@ -939,7 +922,7 @@
       "url": "https://rudraretails.com/products/gurunanda-sinus-rinse-bottle-240ml",
       "handle": "gurunanda-sinus-rinse-bottle-240ml",
       "coverage": "Submitted and indexed",
-      "last_crawl": "2026-08-14",
+      "last_crawl": "2026-10-07",
       "is_indexed": true,
       "index_submitted": false
     },
@@ -950,23 +933,21 @@
       "last_crawl": "2026-09-29",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:48:25.113699"
+      "submitted_at": "2026-10-08T15:41:52.423182"
     },
     {
       "url": "https://rudraretails.com/products/hanz-de-fuko-deluxe-hair-care-kit-sampler",
       "handle": "hanz-de-fuko-deluxe-hair-care-kit-sampler",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-08-22",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "<HttpError 500 when requesting https://searchconsole.googleapis.com/v1/urlInspection/index:inspect?a",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/horbaach-maca-root-extract-capsules",
       "handle": "horbaach-maca-root-extract-capsules",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-08-14",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "<HttpError 500 when requesting https://searchconsole.googleapis.com/v1/urlInspection/index:inspect?a",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/hydrofera-blue-bacteriostatic-foam-dressing-four-by-four-inch-single",
@@ -987,10 +968,9 @@
     {
       "url": "https://rudraretails.com/products/ilso-super-melting-sebum-softener-cotton-pads",
       "handle": "ilso-super-melting-sebum-softener-cotton-pads",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-07-25",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "<HttpError 500 when requesting https://searchconsole.googleapis.com/v1/urlInspection/index:inspect?a",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/irish-spring-original-scent-bar-soap-3-pack",
@@ -1003,11 +983,9 @@
     {
       "url": "https://rudraretails.com/products/iron-paws-human-grade-superfood-dog-greens-powder",
       "handle": "iron-paws-human-grade-superfood-dog-greens-powder",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-09-30",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T15:49:24.463198"
+      "coverage": "ERROR",
+      "error": "The read operation timed out",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/jarrow-formulas-extra-strength-methyl-folate-60-capsules-2",
@@ -1036,10 +1014,9 @@
     {
       "url": "https://rudraretails.com/products/jarrow-formulas-methyl-b12-methyl-folate-chewable-2",
       "handle": "jarrow-formulas-methyl-b12-methyl-folate-chewable-2",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-09-30",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "<HttpError 500 when requesting https://searchconsole.googleapis.com/v1/urlInspection/index:inspect?a",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/jewhiteny-gel-nail-polish-kit-27-colors",
@@ -1108,11 +1085,10 @@
     {
       "url": "https://rudraretails.com/products/la-roche-posay-anthelios-spf60",
       "handle": "la-roche-posay-anthelios-spf60",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-07-25",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T15:51:14.672354"
+      "coverage": "Submitted and indexed",
+      "last_crawl": "2026-10-08",
+      "is_indexed": true,
+      "index_submitted": false
     },
     {
       "url": "https://rudraretails.com/products/la-roche-posay-cicaplast-b5-repairing-spray",
@@ -1190,7 +1166,7 @@
       "url": "https://rudraretails.com/products/la-roche-posay-matte-moisturizer",
       "handle": "la-roche-posay-matte-moisturizer",
       "coverage": "Submitted and indexed",
-      "last_crawl": "2026-10-06",
+      "last_crawl": "2026-10-08",
       "is_indexed": true,
       "index_submitted": false
     },
@@ -1205,19 +1181,17 @@
     {
       "url": "https://rudraretails.com/products/la-roche-posay-toleriane-face",
       "handle": "la-roche-posay-toleriane-face",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-07-31",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T15:52:56.506620"
+      "coverage": "Submitted and indexed",
+      "last_crawl": "2026-10-08",
+      "is_indexed": true,
+      "index_submitted": false
     },
     {
       "url": "https://rudraretails.com/products/la-roche-posay-toleriane-foaming",
       "handle": "la-roche-posay-toleriane-foaming",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-07-29",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "<HttpError 500 when requesting https://searchconsole.googleapis.com/v1/urlInspection/index:inspect?a",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/la-roche-posay-toleriane-hydrating-gentle-facial-cleanser-2",
@@ -1226,7 +1200,7 @@
       "last_crawl": "2026-07-24",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:53:13.482395"
+      "submitted_at": "2026-10-08T15:50:06.654965"
     },
     {
       "url": "https://rudraretails.com/products/la-roche-posay-toleriane-purifying-foaming-cleanser-400ml-4",
@@ -1247,11 +1221,10 @@
     {
       "url": "https://rudraretails.com/products/lebanta-batana-oil-hair-growth-blend-4-fluid-ounce-3",
       "handle": "lebanta-batana-oil-hair-growth-blend-4-fluid-ounce-3",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-09-28",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T15:53:39.179616"
+      "coverage": "Submitted and indexed",
+      "last_crawl": "2026-10-08",
+      "is_indexed": true,
+      "index_submitted": false
     },
     {
       "url": "https://rudraretails.com/products/lebanta-raw-batana-oil-hair-growth-treatment",
@@ -1268,7 +1241,7 @@
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:53:56.334513"
+      "submitted_at": "2026-10-08T15:50:55.020198"
     },
     {
       "url": "https://rudraretails.com/products/life-extension-astaxanthin-with-phospholipids-4mg-30-softgels",
@@ -1281,50 +1254,44 @@
     {
       "url": "https://rudraretails.com/products/life-extension-bifido-gi-balance-probiotics-60-capsules",
       "handle": "life-extension-bifido-gi-balance-probiotics-60-capsules",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-07-25",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "<HttpError 500 when requesting https://searchconsole.googleapis.com/v1/urlInspection/index:inspect?a",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/life-extension-bioactive-complete-b-complex-60-capsules",
       "handle": "life-extension-bioactive-complete-b-complex-60-capsules",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-09-09",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "<HttpError 500 when requesting https://searchconsole.googleapis.com/v1/urlInspection/index:inspect?a",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/life-extension-citicoline-cdp-choline-500mg-60-capsules",
       "handle": "life-extension-citicoline-cdp-choline-500mg-60-capsules",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-08-14",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "The read operation timed out",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/life-extension-dhea-25mg-hormone-balance-100-capsules",
       "handle": "life-extension-dhea-25mg-hormone-balance-100-capsules",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-09-16",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "The read operation timed out",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/life-extension-glycine-1000mg-100-vegetarian-capsules",
       "handle": "life-extension-glycine-1000mg-100-vegetarian-capsules",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-09-26",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "<HttpError 500 when requesting https://searchconsole.googleapis.com/v1/urlInspection/index:inspect?a",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/life-extension-magnesium-glycinate-90-capsules",
       "handle": "life-extension-magnesium-glycinate-90-capsules",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-09-26",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "<HttpError 500 when requesting https://searchconsole.googleapis.com/v1/urlInspection/index:inspect?a",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/life-extension-nad-cell-regenerator-resveratrol-elite-30-capsules",
@@ -1385,11 +1352,10 @@
     {
       "url": "https://rudraretails.com/products/loreal-paris-bright-reveal-dark-spot-exfoliant-peel",
       "handle": "loreal-paris-bright-reveal-dark-spot-exfoliant-peel",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-08-17",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T15:56:06.178440"
+      "coverage": "Submitted and indexed",
+      "last_crawl": "2026-10-08",
+      "is_indexed": true,
+      "index_submitted": false
     },
     {
       "url": "https://rudraretails.com/products/loreal-paris-collagen-moisture-filler-face-moisturizer-2",
@@ -1427,7 +1393,7 @@
       "url": "https://rudraretails.com/products/loreal-paris-elvive-dream-lengths-no-haircut-cream-200ml",
       "handle": "loreal-paris-elvive-dream-lengths-no-haircut-cream-200ml",
       "coverage": "Submitted and indexed",
-      "last_crawl": "2026-10-04",
+      "last_crawl": "2026-10-08",
       "is_indexed": true,
       "index_submitted": false
     },
@@ -1438,15 +1404,14 @@
       "last_crawl": "2026-09-27",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T15:56:56.677841"
+      "submitted_at": "2026-10-08T15:57:08.068271"
     },
     {
       "url": "https://rudraretails.com/products/loreal-paris-everpure-21-in-1-leave-in-conditioner",
       "handle": "loreal-paris-everpure-21-in-1-leave-in-conditioner",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-08-29",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "<HttpError 500 when requesting https://searchconsole.googleapis.com/v1/urlInspection/index:inspect?a",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/loreal-paris-everpure-bond-repair-pre-shampoo-treatment",
@@ -1475,18 +1440,16 @@
     {
       "url": "https://rudraretails.com/products/loreal-paris-everpure-glossing-sulfate-free-conditioner",
       "handle": "loreal-paris-everpure-glossing-sulfate-free-conditioner",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-08-18",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "<HttpError 500 when requesting https://searchconsole.googleapis.com/v1/urlInspection/index:inspect?a",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/loreal-paris-everpure-moisture-sulfate-free-conditioner-2",
       "handle": "loreal-paris-everpure-moisture-sulfate-free-conditioner-2",
-      "coverage": "Submitted and indexed",
-      "last_crawl": "2026-07-31",
-      "is_indexed": true,
-      "index_submitted": false
+      "coverage": "ERROR",
+      "error": "<HttpError 500 when requesting https://searchconsole.googleapis.com/v1/urlInspection/index:inspect?a",
+      "is_indexed": false
     },
     {
       "url": "https://rudraretails.com/products/loreal-paris-everpure-sulfate-free-bond-repair-kit",
@@ -1603,11 +1566,10 @@
     {
       "url": "https://rudraretails.com/products/maybelline-new-york-grippy-serum-hydrating-primer",
       "handle": "maybelline-new-york-grippy-serum-hydrating-primer",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-09-04",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T15:59:54.688262"
+      "coverage": "Submitted and indexed",
+      "last_crawl": "2026-10-08",
+      "is_indexed": true,
+      "index_submitted": false
     },
     {
       "url": "https://rudraretails.com/products/medela-membranes-for-hands-free-collection-cups-2-pack",
@@ -1724,11 +1686,10 @@
     {
       "url": "https://rudraretails.com/products/nature-made-prenatal-folic-acid-dha-110-softgels",
       "handle": "nature-made-prenatal-folic-acid-dha-110-softgels",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-09-21",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T16:02:01.692039"
+      "coverage": "Submitted and indexed",
+      "last_crawl": "2026-10-08",
+      "is_indexed": true,
+      "index_submitted": false
     },
     {
       "url": "https://rudraretails.com/products/nature-made-prenatal-vitamin-softgels-choline-capsules",
@@ -1797,11 +1758,10 @@
     {
       "url": "https://rudraretails.com/products/natures-bounty-hair-skin-nails-gummies-80-count",
       "handle": "natures-bounty-hair-skin-nails-gummies-80-count",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-08-14",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T16:03:22.039983"
+      "coverage": "Submitted and indexed",
+      "last_crawl": "2026-10-08",
+      "is_indexed": true,
+      "index_submitted": false
     },
     {
       "url": "https://rudraretails.com/products/natures-bounty-lactobacillus-acidophilus-probiotic-digestive-supplement-120-tablets",
@@ -1838,11 +1798,10 @@
     {
       "url": "https://rudraretails.com/products/naturium-kp-body-scrub-mask-keratosis-pilaris",
       "handle": "naturium-kp-body-scrub-mask-keratosis-pilaris",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-08-15",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T16:04:04.828459"
+      "coverage": "Submitted and indexed",
+      "last_crawl": "2026-10-08",
+      "is_indexed": true,
+      "index_submitted": false
     },
     {
       "url": "https://rudraretails.com/products/nekton-e-vitamin-e-supplement-birds-35grams",
@@ -1864,7 +1823,7 @@
       "url": "https://rudraretails.com/products/neutrogena-beach-defense-sunscreen-spray-spf50",
       "handle": "neutrogena-beach-defense-sunscreen-spray-spf50",
       "coverage": "Submitted and indexed",
-      "last_crawl": "2026-09-24",
+      "last_crawl": "2026-10-08",
       "is_indexed": true,
       "index_submitted": false
     },
@@ -1919,11 +1878,10 @@
     {
       "url": "https://rudraretails.com/products/neutrogena-sunscreen-spray-spf50-192ml",
       "handle": "neutrogena-sunscreen-spray-spf50-192ml",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-07-28",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T16:06:01.271278"
+      "coverage": "Submitted and indexed",
+      "last_crawl": "2026-10-08",
+      "is_indexed": true,
+      "index_submitted": false
     },
     {
       "url": "https://rudraretails.com/products/neutrogena-triple-age-repair-face-moisturizer-vitamin-c-spf-25",
@@ -1940,7 +1898,7 @@
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T16:06:21.165086"
+      "submitted_at": "2026-10-08T16:07:47.191364"
     },
     {
       "url": "https://rudraretails.com/products/neutrogena-tsal-therapeutic-salicylic-acid-dandruff-shampoo",
@@ -1954,7 +1912,7 @@
       "url": "https://rudraretails.com/products/nida-youthful-formula-ultimate-moisturizing-cream",
       "handle": "nida-youthful-formula-ultimate-moisturizing-cream",
       "coverage": "Submitted and indexed",
-      "last_crawl": "2026-08-14",
+      "last_crawl": "2026-10-07",
       "is_indexed": true,
       "index_submitted": false
     },
@@ -1973,7 +1931,7 @@
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T16:06:57.852537"
+      "submitted_at": "2026-10-08T16:08:20.732556"
     },
     {
       "url": "https://rudraretails.com/products/nordic-naturals-childrens-dha-xtra-liquid-berry-punch",
@@ -2022,7 +1980,7 @@
       "last_crawl": "2026-09-27",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T16:07:49.665245"
+      "submitted_at": "2026-10-08T16:09:11.330762"
     },
     {
       "url": "https://rudraretails.com/products/now-foods-5-htp-100mg-neurotransmitter-support-120-vegetable-capsules-2",
@@ -2055,7 +2013,7 @@
       "last_crawl": "2026-09-14",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T16:08:23.193972"
+      "submitted_at": "2026-10-08T16:09:46.027555"
     },
     {
       "url": "https://rudraretails.com/products/now-foods-astragalus-500-milligram-100-vegetarian-capsules",
@@ -2088,7 +2046,7 @@
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T16:08:56.790936"
+      "submitted_at": "2026-10-08T16:10:20.573746"
     },
     {
       "url": "https://rudraretails.com/products/now-foods-choline-inositol-500mg-100-capsules",
@@ -2113,7 +2071,7 @@
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T16:09:22.169561"
+      "submitted_at": "2026-10-08T16:10:45.674560"
     },
     {
       "url": "https://rudraretails.com/products/now-foods-double-strength-l-arginine-1000mg-tablets",
@@ -2130,7 +2088,7 @@
       "last_crawl": "2026-09-24",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T16:09:39.301985"
+      "submitted_at": "2026-10-08T16:11:02.677529"
     },
     {
       "url": "https://rudraretails.com/products/now-foods-glutathione-cellular-antioxidant-500mg-60-capsules",
@@ -2175,11 +2133,10 @@
     {
       "url": "https://rudraretails.com/products/now-foods-l-citrulline-750-mg-180-veg-capsules-2",
       "handle": "now-foods-l-citrulline-750-mg-180-veg-capsules-2",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-09-24",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T16:10:30.348443"
+      "coverage": "Submitted and indexed",
+      "last_crawl": "2026-10-08",
+      "is_indexed": true,
+      "index_submitted": false
     },
     {
       "url": "https://rudraretails.com/products/now-foods-l-glutamine-500mg-120-veg-capsules-2",
@@ -2204,7 +2161,7 @@
       "last_crawl": "2026-08-23",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T16:10:55.785978"
+      "submitted_at": "2026-10-08T16:12:18.396441"
     },
     {
       "url": "https://rudraretails.com/products/now-foods-l-theanine-200mg-inositol-stress-relief",
@@ -2413,7 +2370,7 @@
       "last_crawl": "2026-07-18",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T16:14:40.195468"
+      "submitted_at": "2026-10-08T16:15:59.728400"
     },
     {
       "url": "https://rudraretails.com/products/now-foods-taurine-double-strength-1000mg-capsules",
@@ -2434,11 +2391,10 @@
     {
       "url": "https://rudraretails.com/products/now-foods-ultra-omega-3-fish-oil-180-softgels",
       "handle": "now-foods-ultra-omega-3-fish-oil-180-softgels",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-09-21",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T16:15:05.867151"
+      "coverage": "Submitted and indexed",
+      "last_crawl": "2026-10-08",
+      "is_indexed": true,
+      "index_submitted": false
     },
     {
       "url": "https://rudraretails.com/products/now-foods-vitamin-b1-thiamine-100mg-100-tablets",
@@ -2487,7 +2443,7 @@
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T16:15:55.969822"
+      "submitted_at": "2026-10-08T16:17:16.392226"
     },
     {
       "url": "https://rudraretails.com/products/now-foods-vitamin-d3-k2-bone-cardiovascular-capsules-2",
@@ -2516,11 +2472,10 @@
     {
       "url": "https://rudraretails.com/products/nutricost-women-boric-acid-vaginal-suppository-capsules",
       "handle": "nutricost-women-boric-acid-vaginal-suppository-capsules",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-09-09",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T16:16:30.227310"
+      "coverage": "Submitted and indexed",
+      "last_crawl": "2026-10-08",
+      "is_indexed": true,
+      "index_submitted": false
     },
     {
       "url": "https://rudraretails.com/products/o-positiv-preggo-sperm-health-60-capsules",
@@ -2541,11 +2496,10 @@
     {
       "url": "https://rudraretails.com/products/old-spice-bar-soap-men-swagger-lime-cedarwood",
       "handle": "old-spice-bar-soap-men-swagger-lime-cedarwood",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-08-15",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T16:16:55.655856"
+      "coverage": "Submitted and indexed",
+      "last_crawl": "2026-10-08",
+      "is_indexed": true,
+      "index_submitted": false
     },
     {
       "url": "https://rudraretails.com/products/old-spice-swagger-body-wash-pack-of-2",
@@ -2614,11 +2568,10 @@
     {
       "url": "https://rudraretails.com/products/panoxyl-antimicrobial-acne-creamy-wash-4-percent",
       "handle": "panoxyl-antimicrobial-acne-creamy-wash-4-percent",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-09-28",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T16:18:13.009397"
+      "coverage": "Submitted and indexed",
+      "last_crawl": "2026-10-08",
+      "is_indexed": true,
+      "index_submitted": false
     },
     {
       "url": "https://rudraretails.com/products/pawsion-ultrasonic-dog-tooth-cleaner-plaque-remover",
@@ -2631,20 +2584,19 @@
     {
       "url": "https://rudraretails.com/products/pepto-bismol-chewable-tablets-upset-stomach-relief-30-count",
       "handle": "pepto-bismol-chewable-tablets-upset-stomach-relief-30-count",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-08-28",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T16:18:30.089384"
+      "coverage": "Submitted and indexed",
+      "last_crawl": "2026-10-08",
+      "is_indexed": true,
+      "index_submitted": false
     },
     {
       "url": "https://rudraretails.com/products/petag-sure-grow-100-puppy-bone-development-tablets",
       "handle": "petag-sure-grow-100-puppy-bone-development-tablets",
-      "coverage": "Discovered - currently not indexed",
+      "coverage": "URL is unknown to Google",
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T16:18:38.701087"
+      "submitted_at": "2026-10-08T16:19:57.533497"
     },
     {
       "url": "https://rudraretails.com/products/phatmojo-blox-fruits-mini-figures-series-2-mystery-blind-bag",
@@ -2673,11 +2625,10 @@
     {
       "url": "https://rudraretails.com/products/plantur-39-phyto-caffeine-tonic-concentrate-scalp-solution",
       "handle": "plantur-39-phyto-caffeine-tonic-concentrate-scalp-solution",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-07-25",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T16:19:12.476235"
+      "coverage": "Submitted and indexed",
+      "last_crawl": "2026-10-08",
+      "is_indexed": true,
+      "index_submitted": false
     },
     {
       "url": "https://rudraretails.com/products/quia-korean-beauty-dual-action-toner-pads",
@@ -2686,7 +2637,7 @@
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T16:19:21.406127"
+      "submitted_at": "2026-10-08T16:20:39.338585"
     },
     {
       "url": "https://rudraretails.com/products/replens-long-lasting-vaginal-moisturizer-estrogen-free-8-applicators",
@@ -2727,7 +2678,7 @@
       "last_crawl": "2026-09-01",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T16:20:04.510337"
+      "submitted_at": "2026-10-08T16:21:21.313910"
     },
     {
       "url": "https://rudraretails.com/products/roc-retinol-correxion-deep-wrinkle-night-cream-mini",
@@ -2776,7 +2727,7 @@
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T16:21:09.847229"
+      "submitted_at": "2026-10-08T16:22:12.343452"
     },
     {
       "url": "https://rudraretails.com/products/sawyer-products-sp564-premium-insect-repellent-picaridin-lotion",
@@ -2817,7 +2768,7 @@
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T16:21:52.675441"
+      "submitted_at": "2026-10-08T16:22:55.682472"
     },
     {
       "url": "https://rudraretails.com/products/snidin-hair-growth-spray-rosemary-biotin-60ml",
@@ -2838,11 +2789,10 @@
     {
       "url": "https://rudraretails.com/products/sports-research-antarctic-krill-oil-60-softgels",
       "handle": "sports-research-antarctic-krill-oil-60-softgels",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-09-29",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T16:22:18.199357"
+      "coverage": "Submitted and indexed",
+      "last_crawl": "2026-10-08",
+      "is_indexed": true,
+      "index_submitted": false
     },
     {
       "url": "https://rudraretails.com/products/sports-research-marine-collagen-peptides-unflavored-twelve-ounce",
@@ -2875,7 +2825,7 @@
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T16:22:52.525698"
+      "submitted_at": "2026-10-08T16:23:55.205928"
     },
     {
       "url": "https://rudraretails.com/products/the-ordinary-squalane-cleanser-hydrating-makeup-remover-50ml-3",
@@ -2937,7 +2887,7 @@
       "url": "https://rudraretails.com/products/tosowoong-arbutin-tranexamic-acid-brightening-cream",
       "handle": "tosowoong-arbutin-tranexamic-acid-brightening-cream",
       "coverage": "Submitted and indexed",
-      "last_crawl": "2026-08-15",
+      "last_crawl": "2026-10-07",
       "is_indexed": true,
       "index_submitted": false
     },
@@ -2996,7 +2946,7 @@
       "last_crawl": "Never",
       "is_indexed": false,
       "index_submitted": true,
-      "submitted_at": "2026-10-07T16:25:08.779096"
+      "submitted_at": "2026-10-08T16:26:01.814281"
     },
     {
       "url": "https://rudraretails.com/products/vev-vitamin-d3-k2-magnesium-zinc-300-softgels",
@@ -3049,11 +2999,10 @@
     {
       "url": "https://rudraretails.com/products/yuri-beauty-collagen-night-wrapping-peel-off-mask",
       "handle": "yuri-beauty-collagen-night-wrapping-peel-off-mask",
-      "coverage": "Crawled - currently not indexed",
-      "last_crawl": "2026-08-02",
-      "is_indexed": false,
-      "index_submitted": true,
-      "submitted_at": "2026-10-07T16:26:08.474240"
+      "coverage": "Submitted and indexed",
+      "last_crawl": "2026-10-08",
+      "is_indexed": true,
+      "index_submitted": false
     },
     {
       "url": "https://rudraretails.com/products/zuzuxia-organic-wild-yam-cream-unscented-4-ounce",

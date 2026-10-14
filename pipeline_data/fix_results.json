@@ -1,185 +1,2617 @@
 {
-  "timestamp": "2026-10-07T13:47:00.778701",
-  "total": 43,
-  "fixed": 0,
+  "timestamp": "2026-10-08T15:58:04.802398",
+  "total": 373,
+  "fixed": 373,
   "skipped": 0,
-  "errors": 43,
+  "errors": 0,
   "details": {
-    "fixed": [],
-    "skipped": [],
-    "errors": [
+    "fixed": [
       {
-        "handle": "aquaphor-healing-ointment-3pack",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=aquaphor-healing-ointment-3pack&limit=1"
+        "handle": "3m-blenderm-plastic-medical-tape-1-inch-5-yards-1-roll",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "aquaphor-lip-repair-ointment-2pack",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=aquaphor-lip-repair-ointment-2pack&limit=1"
+        "handle": "3m-micropore-tan-surgical-tape-125cm-5-rolls-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "act-anticavity-zero-alcohol-fluoride-mouthwash-mint-18-ounce",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "always-daily-extra-protect-unscented-panty-liners-extra-long-116-count",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "amlactin-daily-nourish-therapeutic-body-lotion-14-point-1-ounce-4",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "aou-tone-up-dazzling-cream-01-white-100ml",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "aquaphor-baby-diaper-rash-paste-maximum-strength-3-5-ounce-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "aquaphor-baby-healing-cream-3-in-1-diaper-rash-cream",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "aquaphor-baby-healing-ointment-7oz",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "aquaphor-healing-balm-stick-avocado-oil-shea-butter",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "aquaphor-healing-ointment-advanced-therapy-14-oz-jar",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "aquaphor-lip-repair-ointment-dry-chapped-lips-0-35-ounce-4",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
         "handle": "aquaphor-lip-repair-stick-2pack",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=aquaphor-lip-repair-stick-2pack&limit=1"
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "asocea-adjustable-bird-harness-and-leash-green",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "aveda-men-pure-formance-grooming-clay-75-milliliters",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
         "handle": "aveeno-baby-eczema-nighttime-balm",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=aveeno-baby-eczema-nighttime-balm&limit=1"
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "aveeno-baby-wash-shampoo-oat",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=aveeno-baby-wash-shampoo-oat&limit=1"
+        "handle": "aveeno-baby-eczema-therapy-nighttime-balm-travel-size-one-ounce-4",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "celimax-the-vita-a-retinal-shot-tightening-booster-serum-15ml-2",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=celimax-the-vita-a-retinal-shot-tightening-booster-serum-15ml-2&limit=1"
+        "handle": "aveeno-baby-kids-curly-hair-conditioner-12-fluid-ounce-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "cerave-moisturizing-cream-face-body-8-fluid-ounce",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=cerave-moisturizing-cream-face-body-8-fluid-ounce&limit=1"
+        "handle": "aveeno-baby-kids-curly-hair-shampoo-shea-butter",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "garden-life-kids-gummy-vitamins",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=garden-life-kids-gummy-vitamins&limit=1"
+        "handle": "aveeno-baby-kids-hydrating-detangling-hair-spray-10-fluid-ounces",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "garden-life-kids-immune-gummies",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=garden-life-kids-immune-gummies&limit=1"
+        "handle": "aveeno-baby-kids-sensitive-skin-face-body-gel-cream-4",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "garden-life-kids-multivitamin-30bears",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=garden-life-kids-multivitamin-30bears&limit=1"
+        "handle": "aveeno-baby-kids-sensitive-skin-wash-532ml-3",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "garden-life-organic-preworkout-blackberry",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=garden-life-organic-preworkout-blackberry&limit=1"
+        "handle": "aveeno-baby-mineral-sunscreen-spf-50-zinc-oxide",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "garden-life-recovery-powder-blackberry",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=garden-life-recovery-powder-blackberry&limit=1"
+        "handle": "aveeno-baby-mineral-sunscreen-spf50",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "garden-life-vegan-protein-chocolate",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=garden-life-vegan-protein-chocolate&limit=1"
+        "handle": "aveeno-kids-continuous-protection-mineral-sunscreen-stick-spf-3",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "garden-life-vegan-protein-vanilla",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=garden-life-vegan-protein-vanilla&limit=1"
+        "handle": "aveeno-kids-continuous-protection-zinc-oxide-sunscreen-lotion",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "garden-life-whey-protein-vanilla",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=garden-life-whey-protein-vanilla&limit=1"
+        "handle": "aveeno-skin-relief-intense-moisture-repair-cream-11-ounce-4",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "garden-life-womens-probiotic-30caps",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=garden-life-womens-probiotic-30caps&limit=1"
+        "handle": "aveya-biotin-hair-growth-spray-rosemary-batana-oil-60ml",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "kahi-cleansing-balm-camellia",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=kahi-cleansing-balm-camellia&limit=1"
+        "handle": "based-bodyworks-hair-clay-strong-hold-santal",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "kahi-pdrn-collagen-balm-stick",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=kahi-pdrn-collagen-balm-stick&limit=1"
+        "handle": "based-bodyworks-leave-in-conditioner-santal-200ml-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "based-bodyworks-santal-sea-salt-hair-spray-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "beauty-glazed-big-brush-lip",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "bengay-ultra-strength-topical-pain-relief-cream-4-ounce",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "bioswiss-kitty-cats-hydrocolloid-pimple-patches",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "bitzee-doghouse-interactive-digital-pet-toy-4",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "blackmask-hair-texture-powder-for-men",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "blue-cross-professional-cuticle-remover-softener-lanolin",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "bonkers-purrpops-freeze-dried-chicken-catnip-lollipops",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "bruder-moist-heat-eye-compress-microwave-activated",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "burts-bees-moisturizing-lip-balm-vanilla-bean-two-pack",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "burts-bees-natural-moisturizing-lip-balm-variety-four-pack",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "burts-bees-original-beeswax-lip-balm-four-pack",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "burts-bees-tinted-lip-balm-red-dahlia-2pack",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "carmex-classic-medicated-lip-balm-pack-of-three",
+        "changes": [
+          "metafields"
+        ]
+      },
+      {
+        "handle": "celimax-pore-dark-spot-brightening-cream",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "centrum-silver-women-50-plus-multivitamin-200-tablets",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-acne-foaming-cream-cleanser-benzoyl-peroxide",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-acne-foaming-cream-wash-benzoyl-peroxide-five-ounce",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-acne-treatment-salicylic-acid-cleanser-eight-ounce-4",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-am-facial-lotion-spf30",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-am-facial-moisturizing-lotion-spf-30-3-ounce",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-anti-itch-moisturizing-lotion-16-ounce",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-eye-repair-cream",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-foaming-facial-cleanser-87ml",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-gentle-hydrating-shampoo-ceramides-12-ounce",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-hydrating-anti-dandruff-shampoo-conditioner",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-hydrating-hyaluronic-acid-serum-one-ounce-4",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-hydrating-mineral-sunscreen-spf-50-face-lotion",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-invisible-mineral-sunscreen-spf-50-travel-size",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-moisturizing-cream-itch-relief-16-ounce-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-oil-control-balancing-shampoo-12-ounce",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-pm-facial-moisturizing-lotion",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-resurfacing-retinol-serum-post-acne-marks",
+        "changes": [
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-sa-lotion-rough-and-bumpy-skin-8-ounce",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-skin-renewing-eye-cream-wrinkles-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-skin-renewing-night-cream-peptide-1-7-ounce",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-skin-renewing-retinol-anti-aging-serum-30ml-4",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cerave-skin-renewing-vitamin-c-eye-cream",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "certain-dri-antiperspirant-hand-lotion-sweat-control",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cetaphil-fast-rescue-acne-pimple-patches-24-count-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cetaphil-gentle-clear-mattifying-acne-moisturizer",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cetaphil-healing-ointment-advanced-skin-protectant-tub-4",
+        "changes": [
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cetaphil-redness-relieving-night-moisturizer-cream-3",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cetaphil-sheer-mineral-liquid-sunscreen-face-drops",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cetaphil-skin-activator-hydrating-firming-body-cream-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "cetaphil-skin-activator-hydrating-firming-cream-3",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "chapstick-classic-collection-lip-balm-variety-3-pack",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "chapstick-classic-original-skin-protectant-lip-balm-three-pack",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "chapstick-moisturizer-original-lip-balm-three-pack",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "clairol-natural-instincts-demi-permanent-hair-dye-2-black",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "color-oops-extra-strength-hair-color-remover-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "covergirl-simply-ageless-skin-perfector-essence-foundation-3",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "dermoplast-pain-burn-itch-relief-spray",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "dista-usa-one-a-day-womens-prenatal-advanced-multivitamin",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "doctors-best-alpha-lipoic-acid-600mg-60-veggie-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "doctors-best-bacopa-with-synapsa-cognitive-performance-supplement-60-veggie-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "doctors-best-benfotiamine-300mg-cellular-60-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "doctors-best-fully-active-b-complex-60-capsules-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "doctors-best-fully-active-b-complex-quatrefolic-30-veggie-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "doctors-best-fully-active-b12-1500-micrograms-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "doctors-best-high-absorption-coq10-bioperine-100mg-120-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "doctors-best-high-absorption-coq10-bioperine-100mg-120-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "doctors-best-high-absorption-coq10-bioperine-200mg-capsules-3",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "doctors-best-nattokinase-2000-fus-90-veggie-capsules-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "doctors-best-natural-vitamin-k2-mk7-60-vegetable-capsules-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "dr-berg-vitamin-d3-k2-5000-iu-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "dramamine-motion-sickness-relief-for-kids-chewable-grape-8-count-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "eadem-le-chouchou-lip-softening-balm-butter-mochi",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "elevit-prenatal-multivitamin-iodine-folic-acid-100-tablets",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "elf-lip-plumping-gloss-pink-cosmo-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "elire-repair-eye-cream-ceramides-caffeine-15ml",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "epais-essential-eyelash-growth-serum-jumbo-15ml",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "esther-formula-liposomal-glutathione-strips-30-count",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "estroven-complete-multi-symptom-menopause-relief-28-count",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "eucerin-aquaphor-healing-ointment-advanced-therapy-tube-1point75-ounce-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "feliway-classic-cat-calming-diffuser-starter-kit",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "fixodent-complete-original-denture-adhesive-cream-strong-hold-two-point-four-ounce",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "fixodent-denture-adhesive-cream",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "gaoy-sheer-nude-cat-eye-gel-nail-polish-set",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "garden-of-life-organics-b12-liquid-vitamin-spray",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "globe-ichthammol-ointment-twenty-percent-drawing-salve-one-ounce",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "gold-bond-retinol-overnight-lotion",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "gurunanda-sinus-rinse-bottle-240ml",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "haakaa-hydrogel-pads-with-lanolin-8-pcs",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "hanz-de-fuko-deluxe-hair-care-kit-sampler",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "horbaach-maca-root-extract-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "hydrofera-blue-bacteriostatic-foam-dressing-four-by-four-inch-single",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "iberogast-liquid-drops-herbal-digestive-relief-50ml",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "ilso-super-melting-sebum-softener-cotton-pads",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "irish-spring-original-scent-bar-soap-3-pack",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "iron-paws-human-grade-superfood-dog-greens-powder",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "jarrow-formulas-extra-strength-methyl-folate-60-capsules-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "jarrow-formulas-ideal-bowel-support-probiotic-30-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "jarrow-formulas-methyl-b12-1000-micrograms-100-tablets-3",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "jarrow-formulas-methyl-b12-methyl-folate-chewable-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "jewhiteny-gel-nail-polish-kit-27-colors",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "jodsone-36-piece-gel-nail-polish-kit",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "just-for-men-touch-of-gray-mustache-and-beard-dark-brown-black",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "kirkland-signature-nighttime-sleep-aid-96-tablets",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "kirkland-signature-sleep-aid-doxylamine-succinate-96-tablets",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "kirkland-signature-stool-softener-100mg-400-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "klaire-labs-interfase-plus-enzyme-formula-60-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "la-roche-posay-anthelios-light-fluid-spf-60",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "la-roche-posay-anthelios-spf60",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "la-roche-posay-cicaplast-b5-repairing-spray",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "la-roche-posay-cicaplast-lip-balm-b5",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "la-roche-posay-effaclar-clarifying-3",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "la-roche-posay-effaclar-dual-acne-face-wash",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "la-roche-posay-effaclar-purifying-foaming-gel-cleanser-400ml-3",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "la-roche-posay-lipikar-ap-max-triple-repair-cream-200ml",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "la-roche-posay-lipikar-body",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "la-roche-posay-lipikar-body-lotion-shea-butter-400ml",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "la-roche-posay-lipikar-urea-10-smoothing-lotion-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "la-roche-posay-matte-moisturizer",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "la-roche-posay-toleriane-double-repair-matte-face-moisturizer-3",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "la-roche-posay-toleriane-face",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "la-roche-posay-toleriane-foaming",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "la-roche-posay-toleriane-hydrating-gentle-facial-cleanser-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "la-roche-posay-toleriane-purifying-foaming-cleanser-400ml-4",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "laka-soothing-prep-lip-mask",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "lebanta-batana-oil-hair-growth-blend-4-fluid-ounce-3",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "lebanta-raw-batana-oil-hair-growth-treatment",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "lego-71017-the-batman-movie-series-minifigure-blind-bag",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "life-extension-astaxanthin-with-phospholipids-4mg-30-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "life-extension-bifido-gi-balance-probiotics-60-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "life-extension-bioactive-complete-b-complex-60-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "life-extension-citicoline-cdp-choline-500mg-60-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "life-extension-dhea-25mg-hormone-balance-100-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "life-extension-glycine-1000mg-100-vegetarian-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "life-extension-magnesium-glycinate-90-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "life-extension-nad-cell-regenerator-resveratrol-elite-30-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "life-extension-neuro-mag-magnesium-l-threonate-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "life-extension-super-omega-3-plus-120-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "life-extension-two-per-day-multivitamin-120-tablets-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "lip-smacker-hello-kitty-ice-cream-lip-balm",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "living-world-millet-spray-for-birds-3-5-ounces",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
         "handle": "loreal-elvive-oil-100ml",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=loreal-elvive-oil-100ml&limit=1"
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "loreal-revitalift-night-cream-retinol",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=loreal-revitalift-night-cream-retinol&limit=1"
+        "handle": "loreal-paris-bright-reveal-dark-spot-exfoliant-peel",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "loreal-total-repair-conditioner-28oz",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=loreal-total-repair-conditioner-28oz&limit=1"
+        "handle": "loreal-paris-collagen-moisture-filler-face-moisturizer-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "medicube-booster-pro-pink",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=medicube-booster-pro-pink&limit=1"
+        "handle": "loreal-paris-collagen-moisture-filler-fragrance-free-cream-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "medicube-exosome-shot-serum",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=medicube-exosome-shot-serum&limit=1"
+        "handle": "loreal-paris-elnett-satin-hairspray-extra-strong-hold-unscented-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "medicube-mini-booster-pro-pink",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=medicube-mini-booster-pro-pink&limit=1"
+        "handle": "loreal-paris-elvive-dream-lengths-frizz-killer-serum",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "medicube-mini-booster-pro-white",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=medicube-mini-booster-pro-white&limit=1"
+        "handle": "loreal-paris-elvive-dream-lengths-no-haircut-cream-200ml",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "medicube-pdrn-pink-peptide-serum",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=medicube-pdrn-pink-peptide-serum&limit=1"
+        "handle": "loreal-paris-elvive-hyaluron-plus-pure-oil-erasing-scalp-serum",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "medicube-triple-collagen-serum",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=medicube-triple-collagen-serum&limit=1"
+        "handle": "loreal-paris-everpure-21-in-1-leave-in-conditioner",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "medicube-txa-niacinamide-serum",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=medicube-txa-niacinamide-serum&limit=1"
+        "handle": "loreal-paris-everpure-bond-repair-pre-shampoo-treatment",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "medicube-zero-pore-pads-70ct",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=medicube-zero-pore-pads-70ct&limit=1"
+        "handle": "loreal-paris-everpure-clarify-sulfate-free-shampoo-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "natures-bounty-cinnamon-chromium-60capsules",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=natures-bounty-cinnamon-chromium-60capsules&limit=1"
+        "handle": "loreal-paris-everpure-glossing-lamination-hair-mask",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "loreal-paris-everpure-glossing-sulfate-free-conditioner",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "loreal-paris-everpure-moisture-sulfate-free-conditioner-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "loreal-paris-everpure-sulfate-free-bond-repair-kit",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "loreal-paris-everpure-sulfate-free-moisture-shampoo-rosemary-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "loreal-paris-infallible-blurfection-setting-powder-light-pink",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "loreal-paris-men-expert-one-twist-hair-color-real-black",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "loreal-paris-revitalift-derm-intensives-vitamin-c-serum-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "loreal-paris-sublime-bronze-tinted-self-tanning-lotion-medium-4",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "loreal-paris-true-match-lumi-glotion-903-medium",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "loreal-paris-true-match-lumi-le-glass-highlighter-stick-pink-ballet",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "loreal-true-match-nude-hyaluronic-tinted-serum-light",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "lotbill-flange-insert-13-21mm-kit",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "lumify-preservative-free-redness-reliever-eye-drops",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "lumify-redness-reliever-eye-drops-brimonidine-tartrate-2-5-ml",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "macks-ultra-soft-foam-earplugs-33db-nrr-50-pair-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "maison-alhambra-jean-lowe-immortal-eau-de-parfum-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "maybelline-new-york-grippy-serum-hydrating-primer",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "medela-membranes-for-hands-free-collection-cups-2-pack",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "medela-replacement-tubing-hands-free-collection-cups",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "medicube-kojic-acid-turmeric-brightening-body-wash",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "medicube-zero-pore-blackhead-mud-mask-100g-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "medline-unna-z-stretch-zinc-oxide",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "metene-td-4116-blood-glucose-test-strips-100-count",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "milikilo-stylus-pen-for-microsoft-surface-pro",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "miofis-magnetic-seaweed-feeder-clip-black",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "mobetter-fragrance-oils-powder-fresh-scent-body-oil",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "momcozy-kleanpal-pro-detergent-tablets-120-count",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "nature-made-magnesium-glycinate-90-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "nature-made-multivitamin-for-him-no-iron-tablets",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "nature-made-multivitamin-for-men-over-50-90-tablets",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "nature-made-postnatal-multivitamin-dha-60-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "nature-made-prenatal-folic-acid-dha-110-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "nature-made-prenatal-vitamin-softgels-choline-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "nature-made-vitamin-b1-100mg-energy-metabolism-100-tablets",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "nature-made-vitamin-b12-1000mcg-time-release-160-tablets",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
         "handle": "natures-bounty-echinacea-400mg-100capsules",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=natures-bounty-echinacea-400mg-100capsules&limit=1"
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "naturesbounty-acidophilus-probiotic-tablets",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=naturesbounty-acidophilus-probiotic-tablets&limit=1"
+        "handle": "natures-bounty-evening-primrose-oil-1000mg-60-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "neutrogena-gel-cream-moisturizer-50ml",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=neutrogena-gel-cream-moisturizer-50ml&limit=1"
+        "handle": "natures-bounty-fish-oil-1200mg-omega3-200-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "neutrogena-hydro-boost-face-wash",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=neutrogena-hydro-boost-face-wash&limit=1"
+        "handle": "natures-bounty-fish-oil-2400mg-double-strength-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "neutrogena-hydro-boost-gel-17oz",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=neutrogena-hydro-boost-gel-17oz&limit=1"
+        "handle": "natures-bounty-ginkgo-biloba-120mg-cognitive-support-100-capsules-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "neutrogena-hydro-boost-skincare",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=neutrogena-hydro-boost-skincare&limit=1"
+        "handle": "natures-bounty-hair-skin-nails-gummies-80-count",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "neutrogena-hydro-boost-spf50-50ml",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=neutrogena-hydro-boost-spf50-50ml&limit=1"
+        "handle": "natures-bounty-lactobacillus-acidophilus-probiotic-digestive-supplement-120-tablets",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "now-eucalyptus-essential-oil-4oz",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=now-eucalyptus-essential-oil-4oz&limit=1"
+        "handle": "natures-bounty-silymarin-milk-thistle-1000mg-50-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "nutricost-b12-methylcobalamin-240capsules",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=nutricost-b12-methylcobalamin-240capsules&limit=1"
+        "handle": "natures-bounty-vitamin-b12-1000mcg-quick-dissolve-tablets",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "nutricost-biotin-10000mcg-240capsules",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=nutricost-biotin-10000mcg-240capsules&limit=1"
+        "handle": "natures-bounty-vitamin-b12-5000mcg-sublingual-liquid",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "nutricost-glucosamine-chondroitin-240tablets",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=nutricost-glucosamine-chondroitin-240tablets&limit=1"
+        "handle": "naturium-kp-body-scrub-mask-keratosis-pilaris",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "nutricost-zinc-gluconate-240capsules",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=nutricost-zinc-gluconate-240capsules&limit=1"
+        "handle": "nekton-e-vitamin-e-supplement-birds-35grams",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       },
       {
-        "handle": "ordinary-glycolic-toner-240ml-1",
-        "error": "401 Client Error: Unauthorized for url: https://rxzg15-05.myshopify.com/admin/api/2024-10/products.json?handle=ordinary-glycolic-toner-240ml-1&limit=1"
+        "handle": "neutrogena-beach-defense-sunscreen-lotion-spf-70",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "neutrogena-beach-defense-sunscreen-spray-spf50",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "neutrogena-beach-defense-sunscreen-stick-spf-50",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "neutrogena-fragrance-free-makeup-remover-micellar-cleansing-wipes-25-count-4",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "neutrogena-gentle-oil-free-eye-makeup-remover-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "neutrogena-micellar-wipes-25count",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "neutrogena-oil-free-liquid-eye-makeup-remover-3-8-ounce",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "neutrogena-sport-sunscreen-spf70",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "neutrogena-sunscreen-spray-spf50-192ml",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "neutrogena-triple-age-repair-face-moisturizer-vitamin-c-spf-25",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "neutrogena-triple-age-repair-night-moisturizer-cream",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "neutrogena-tsal-therapeutic-salicylic-acid-dandruff-shampoo",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "nida-youthful-formula-ultimate-moisturizing-cream",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "nizoral-ketoconazole-anti-dandruff-shampoo",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "no-sweat-antiperspirant-gel-50ml",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "nordic-naturals-childrens-dha-xtra-liquid-berry-punch",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "nordic-naturals-prenatal-dha-omega-3-supplement-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "nordic-naturals-ultimate-omega-junior-strawberry-120-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "nordic-naturals-ultimate-omega-three-fish-oil-lemon-sixty-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "north-american-rescue-hyfin-vent-chest-seal-twin-pack",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "noveha-pet-drops-advanced-lanosterol-solution-nac-2-pack",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-5-htp-100mg-neurotransmitter-support-120-vegetable-capsules-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-ashwagandha-standardized-extract-450mg-90-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-astaxanthin-4mg-eye-health-60-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-astaxanthin-cellular-protection-90-softgels",
+        "changes": [
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-astragalus-500-milligram-100-vegetarian-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-berberine-glucose-support-90-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-boron-three-milligram-two-hundred-fifty-capsules",
+        "changes": [
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-choline-inositol-500-milligrams-100-vegetarian-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-choline-inositol-500mg-100-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-copper-glycinate-120-tablets",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-cordyceps-750mg-healthy-immune-support-90-veg-capsules-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-double-strength-l-arginine-1000mg-tablets",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-fresh-green-black-walnut-wormwood-complex-liquid-60-milliliter-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-glutathione-cellular-antioxidant-500mg-60-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-glycine-1000mg-100-veg-capsules-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-glycine-pure-powder-restful-sleep-1-pound",
+        "changes": [
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-iron-18-milligrams-120-vegetable-capsules-4",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-l-arginine-500mg-100-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-l-citrulline-750-mg-180-veg-capsules-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-l-glutamine-500mg-120-veg-capsules-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-l-lysine-double-strength-1000mg-tablets",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-l-optizinc-30-milligrams-immune-support-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-l-theanine-200mg-inositol-stress-relief",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-l-tyrosine-500mg-120-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-lutein-zeaxanthin-eye-health-60-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-magtein-cognitive-support-90-veg-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-mega-d3-and-mk7-bone-cardiovascular-support-60-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-methyl-b12-1000mcg-100-lozenges-4",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-nac-1000mg-liver-health-120-tablets-3",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-niacinamide-vitamin-b3-500-mg-capsules-3",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-omega-3-1000mg-cardiovascular-support-100-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-omega-3-fish-oil-molecularly-distilled-200-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-oregano-oil-intestinal-health-90-softgels-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-organic-spirulina-1000mg-double-strength-120-tablets",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-paba-500mg-100-vegetarian-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-pantothenic-acid-500mg-100-veg-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-pantothenic-acid-vitamin-b5-500mg-capsules-4",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-probiotic-10-25-billion-50-vegetarian-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-pumpkin-seed-oil-1000mg-100-softgels-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-rhodiola-500mg-60-vegetarian-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-saw-palmetto-extract-320mg-pumpkin-seed-oil-90-veggie-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-saw-palmetto-extract-pumpkin-seed-zinc-90-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-selenium-200-micrograms-180-vegetarian-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-selenium-l-selenomethionine-100mcg-100-tablets",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-silymarin-milk-thistle-turmeric-120-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-slippery-elm-400mg-100-vegetarian-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-sunflower-lecithin-1200mg-100-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-super-enzymes-digestive-support-90-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-taurine-double-strength-1000mg-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-testojack-300-extra-strength-mens-support-60-capsules-3",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-ultra-omega-3-fish-oil-180-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-vitamin-b1-thiamine-100mg-100-tablets",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-vitamin-b12-1000mcg-folic-acid-lozenges",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-vitamin-c-1000-bioflavonoids-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-vitamin-d3-10000-iu-120-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-vitamin-d3-5000-iu-120-softgels-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-vitamin-d3-5000-iu-240-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-vitamin-d3-k2-bone-cardiovascular-capsules-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "now-foods-zinc-picolinate-50mg-120-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "nutricost-l-theanine-200mg-double-strength-120-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "nutricost-women-boric-acid-vaginal-suppository-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "o-positiv-preggo-sperm-health-60-capsules",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "off-insect-repellent-lotion-adults-kids-picaridin-fragrance-free",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "old-spice-bar-soap-men-swagger-lime-cedarwood",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "old-spice-swagger-body-wash-pack-of-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "old-spice-swagger-hand-face-body-lotion-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "ordinary-matrixyl-hyaluronic-serum-30ml",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "ordinary-resveratrol-ferulic-serum-30ml",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "ordinary-retinol-squalane-30ml",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "out-petcare-puppy-pads-xxl-heavy-duty-30-count",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "oxbow-critical-care-apple-banana-supplement-141grams",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "pailon-breathable-peritoneal-dialysis-catheter-belt-nude-medium",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "panoxyl-antimicrobial-acne-creamy-wash-4-percent",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "pawsion-ultrasonic-dog-tooth-cleaner-plaque-remover",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "pepto-bismol-chewable-tablets-upset-stomach-relief-30-count",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "petag-sure-grow-100-puppy-bone-development-tablets",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "phatmojo-blox-fruits-mini-figures-series-2-mystery-blind-bag",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "philips-avent-natural-glass-bottle-slow-flow-4oz",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "philips-avent-natural-response-glass-baby-bottles-4-pack",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "plantur-39-phyto-caffeine-tonic-concentrate-scalp-solution",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "quia-korean-beauty-dual-action-toner-pads",
+        "changes": [
+          "metafields"
+        ]
+      },
+      {
+        "handle": "replens-long-lasting-vaginal-moisturizer-estrogen-free-8-applicators",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "rimmel-lasting-cappuccino-lip-liner",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "roc-multi-correxion-hyaluronic-acid-eye-cream-set",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "roc-multi-correxion-revive-glow-vitamin-c-serum-one-fluid-ounce",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "roc-retinol-correxion-deep-wrinkle-night-cream",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "roc-retinol-correxion-deep-wrinkle-night-cream-mini",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "roc-retinol-correxion-eye-cream-mini-0-25-ounce-4",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "roc-retinol-correxion-line-smoothing-night-serum-capsules-30-count",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "roc-retinol-correxion-max-hydration-face-moisturizer",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "saltair-serum-deodorant-5-percent-aha-2-pack",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "sawyer-picaridin-insect-repellent-spray-twin-pack",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "sawyer-products-sp564-premium-insect-repellent-picaridin-lotion",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "scola-pumpkin-seed-oil-saw-palmetto-300-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "sebastian-professional-craft-clay-remoldable-matte-texturizer",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "sheglam-pinky-promise-lip-liner",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "skintific-alaska-volcano-pore-clay-stick",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "snidin-hair-growth-spray-rosemary-biotin-60ml",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "somxl-genital-wart-and-hpv-removal-treatment-0-5-ounce",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "sports-research-antarctic-krill-oil-60-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "sports-research-marine-collagen-peptides-unflavored-twelve-ounce",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "sports-research-vegan-omega-three-algae-oil-60-veggie-softgels-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "sports-research-vitamin-d3-k2-plant-based-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "taro-minoxidil-5-percent-topical-foam-for-women-two-month-supply-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "the-ordinary-squalane-cleanser-hydrating-makeup-remover-50ml-3",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "the-ordinary-vitamin-c-suspension-23-ha-spheres",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "thyseed-anti-colic-glass-baby-bottle-extra-slow-flow-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "tide-to-go-instant-stain-remover-liquid-pen-fresh-three-count",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "tigi-bed-head-hard-head-hair-spray-extreme-hold-eleven-point-seven-ounce",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "timeless-skin-care-20-percent-vitamin-c-ferulic-acid-serum-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "torbot-skin-tac-adhesive-barrier-wipes-50-count-box",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "tosowoong-arbutin-tranexamic-acid-brightening-cream",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "tp-link-tapo-1080p-indoor-security-camera-for-baby-monitor-dog-camera-wmotion-de-b0866s3d82",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "tp-link-tapo-c220-2k-qhd-smart-security-camera",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "tp-link-tapo-pantilt-security-camera-for-baby-monitor-pet-camera-wmotion-detecti-b0829kdy9x",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "triquetra-health-kids-l-methylfolate-methyl-b12-drops-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "tums-ultra-strength-chewable-antacid-peppermint-160-count",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "vanicream-gentle-facial-cleanser-sensitive-skin-8-ounce-2",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "vaseline-glazed-and-glisten-sunlit-glow-body-gel-oil",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "vev-vitamin-d3-k2-magnesium-zinc-300-softgels",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "wavytalk-pro-steamline-3-in-1-straightening-brush",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "wet-n-wild-mega-last-breakup-proof-liquid-eyeliner",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "wet-n-wild-ultimate-eyebrow-makeup-kit-dark-brown",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "xpapov-dog-pooper-scooper-portable-no-touch-waste-picker",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "yafusipe-yellow-peeling-oil-extra-strength-chemical-exfoliant",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "yuri-beauty-collagen-night-wrapping-peel-off-mask",
+        "changes": [
+          "title",
+          "metafields"
+        ]
+      },
+      {
+        "handle": "zuzuxia-organic-wild-yam-cream-unscented-4-ounce",
+        "changes": [
+          "title",
+          "metafields"
+        ]
       }
-    ]
+    ],
+    "skipped": [],
+    "errors": []
   }
 }
