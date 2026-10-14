@@ -1936,11 +1936,7 @@ def api_smart_sync():
 @app.route("/api/auto-inspect", methods=["POST"])
 @handle_errors
 def api_auto_inspect():
-    """Batch URL inspection from dashboard — inspects up to 50 URLs."""
-    sc = _sc_v1 or _get_any_sc_service()
-    if sc is None:
-        return jsonify({"error": "GSC not authenticated"}), 401
-
+    """Batch URL inspection from dashboard — inspects up to 50 URLs, rotating accounts on quota."""
     data = request.get_json() or {}
     urls = data.get("urls", [])[:50]
 
@@ -1949,37 +1945,76 @@ def api_auto_inspect():
         urls = [url for url, v in index_db.items()
                 if not v.get("is_indexed") and not v.get("coverage", "").startswith("ERROR")][:50]
 
-    quotas = _load_account_quotas()
-    results = []
-    for url in urls:
+    # Build list of available service objects from all credentials
+    sc_services = []
+    for cred_file in sorted(Path(".").glob("credentials*.json")):
         try:
-            result = sc.urlInspection().index().inspect(
-                body={"inspectionUrl": url, "siteUrl": SITE_URL}
-            ).execute()
-            idx = result.get("inspectionResult", {}).get("indexStatusResult", {})
-            coverage = idx.get("coverageState", "unknown")
-            rich = result.get("inspectionResult", {}).get("richResultsResult", {})
-            rich_items = [item.get("richResultType", "")
-                          for item in rich.get("detectedItems", [])]
+            cred_data = json.loads(cred_file.read_text())
+            if cred_data.get("type") == "service_account":
+                from google.oauth2 import service_account as sa_mod
+                from googleapiclient.discovery import build as gbuild
+                creds = sa_mod.Credentials.from_service_account_file(
+                    str(cred_file),
+                    scopes=["https://www.googleapis.com/auth/webmasters.readonly"])
+                svc = gbuild("searchconsole", "v1", credentials=creds, cache_discovery=False)
+                sc_services.append({"service": svc, "file": cred_file.name})
+        except Exception:
+            continue
 
-            results.append({
-                "url": url,
-                "coverage": coverage,
-                "rich_results": rich_items,
-                "is_indexed": "indexed" in coverage.lower() and "not" not in coverage.lower(),
-            })
-            # Track quota for the first account (auto-inspect uses primary credentials)
-            if quotas.get("accounts"):
-                quotas["accounts"][0]["inspect_used"] = quotas["accounts"][0].get("inspect_used", 0) + 1
-            time.sleep(DELAY)
-        except Exception as e:
-            err = str(e)
-            if "429" in err or "quota" in err.lower():
-                if quotas.get("accounts"):
-                    quotas["accounts"][0]["inspect_used"] = quotas["accounts"][0].get("inspect_limit", 2000)
-                break
-            results.append({"url": url, "coverage": f"ERROR: {err[:80]}", "rich_results": [], "is_indexed": False})
-            time.sleep(1)
+    if not sc_services:
+        return jsonify({"error": "No GSC credentials found"}), 401
+
+    quotas = _load_account_quotas()
+    acct_map = {a.get("credentials_file"): a for a in quotas.get("accounts", [])}
+    results = []
+    errors_log = []
+    svc_idx = 0
+
+    app.logger.info(f"[auto-inspect] Starting inspection of {len(urls)} URLs with {len(sc_services)} accounts")
+    for url in urls:
+        inspected = False
+        attempts = 0
+        while not inspected and attempts < len(sc_services):
+            sc_info = sc_services[svc_idx % len(sc_services)]
+            sc = sc_info["service"]
+            acct = acct_map.get(sc_info["file"], {})
+            try:
+                result = sc.urlInspection().index().inspect(
+                    body={"inspectionUrl": url, "siteUrl": SITE_URL}
+                ).execute()
+                idx = result.get("inspectionResult", {}).get("indexStatusResult", {})
+                coverage = idx.get("coverageState", "unknown")
+                rich = result.get("inspectionResult", {}).get("richResultsResult", {})
+                rich_items = [item.get("richResultType", "")
+                              for item in rich.get("detectedItems", [])]
+
+                results.append({
+                    "url": url,
+                    "coverage": coverage,
+                    "rich_results": rich_items,
+                    "is_indexed": "indexed" in coverage.lower() and "not" not in coverage.lower(),
+                })
+                acct["inspect_used"] = acct.get("inspect_used", 0) + 1
+                inspected = True
+                time.sleep(DELAY)
+            except Exception as e:
+                err = str(e)
+                if "429" in err or "quota" in err.lower():
+                    app.logger.warning(f"[auto-inspect] Quota hit on {sc_info['file']}, rotating...")
+                    svc_idx += 1
+                    attempts += 1
+                    time.sleep(0.5)
+                else:
+                    app.logger.warning(f"[auto-inspect] Error on {url[:60]}: {err[:120]}")
+                    errors_log.append(err[:120])
+                    results.append({"url": url, "coverage": f"ERROR: {err[:80]}", "rich_results": [], "is_indexed": False})
+                    inspected = True
+                    time.sleep(1)
+
+        if not inspected:
+            errors_log.append("QUOTA_EXCEEDED")
+            break
+
     _save_json(DATA_DIR / "account_quotas.json", quotas)
 
     # Update index_status DB
@@ -1998,7 +2033,10 @@ def api_auto_inspect():
         })
     _save_json(DATA_DIR / "index_status.json", index_db)
 
-    return jsonify({"ok": True, "inspected": len(results), "results": results})
+    resp = {"ok": True, "inspected": len(results), "results": results}
+    if errors_log:
+        resp["errors"] = errors_log
+    return jsonify(resp)
 
 
 @app.route("/api/gsc-reports", methods=["GET", "POST"])
@@ -2049,6 +2087,15 @@ def api_accounts():
             except Exception:
                 pass
     _save_json(DATA_DIR / "account_quotas.json", quotas)
+    total_inspect_used = sum(a.get("inspect_used", 0) for a in quotas.get("accounts", []))
+    total_index_used = sum(a.get("index_used", 0) for a in quotas.get("accounts", []))
+    total_index_limit = sum(a.get("index_limit", 200) for a in quotas.get("accounts", []))
+    quotas["shared_quota"] = {
+        "inspect_used": total_inspect_used,
+        "inspect_limit": 2000,
+        "index_used": total_index_used,
+        "index_limit": total_index_limit,
+    }
     return jsonify(quotas)
 
 
@@ -2676,10 +2723,81 @@ def api_live_all():
         except Exception as e:
             errors["countries"] = str(e)
 
+    gsc_reports = _load_json(DATA_DIR / "gsc_reports.json", {})
+    ext_data = _load_json(DATA_DIR / "extension_gsc_data.json", {})
+
+    def _enh_val(ext_key, ext_field, report_key):
+        v = ext_data.get(ext_key, {}).get(ext_field, "")
+        try:
+            v = int(v)
+        except (ValueError, TypeError):
+            v = 0
+        if v:
+            return v
+        try:
+            return int(gsc_reports.get(report_key, 0))
+        except (ValueError, TypeError):
+            return 0
+
+    results["gsc_enhancements"] = {
+        "product_snippets": {
+            "valid": _enh_val("productSnippets", "valid", "product_snippets_valid"),
+            "invalid": _enh_val("productSnippets", "error", "product_snippets_invalid"),
+            "issues": ext_data.get("productSnippets", {}).get("issues", []),
+        },
+        "merchant_listings": {
+            "valid": _enh_val("merchantListings", "valid", "merchant_listings_valid"),
+            "invalid": _enh_val("merchantListings", "error", "merchant_listings_invalid"),
+            "issues": ext_data.get("merchantListings", {}).get("issues", []),
+        },
+        "review_snippets": {
+            "valid": _enh_val("reviewSnippets", "valid", "review_snippets_valid"),
+            "invalid": _enh_val("reviewSnippets", "error", "review_snippets_invalid"),
+            "issues": ext_data.get("reviewSnippets", {}).get("issues", []),
+        },
+        "last_updated": ext_data.get("received_at") or gsc_reports.get("last_updated", ""),
+    }
+
     results["errors"] = errors
     results["is_live"] = bool(_sc_v1 or wmt)
     results["fetched_at"] = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
     return jsonify(results)
+
+
+@app.route("/api/enhancement-urls")
+@handle_errors
+def api_enhancement_urls():
+    """Return URLs grouped by rich result / enhancement type from pipeline data."""
+    index_db = _load_json(DATA_DIR / "index_status.json", {})
+    rr_type = request.args.get("type", "")
+    page = int(request.args.get("page", 1))
+    per_page = min(int(request.args.get("per_page", 50)), 200)
+
+    groups = {}
+    for url, info in index_db.items():
+        for rr in (info.get("rich_results") or []):
+            norm = rr.strip()
+            groups.setdefault(norm, []).append({
+                "url": url,
+                "coverage": info.get("coverage", ""),
+                "is_indexed": info.get("is_indexed", False),
+                "checked_at": info.get("checked_at", ""),
+            })
+
+    if rr_type:
+        matches = groups.get(rr_type, [])
+        total = len(matches)
+        start = (page - 1) * per_page
+        return jsonify({
+            "type": rr_type,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "urls": matches[start:start + per_page],
+        })
+
+    summary = {k: len(v) for k, v in sorted(groups.items(), key=lambda x: -len(x[1]))}
+    return jsonify({"types": summary, "total_urls_with_enhancements": sum(summary.values())})
 
 
 @app.route("/api/cache/clear", methods=["POST"])
@@ -2855,45 +2973,39 @@ _bulk_thread = None
 
 
 def _bulk_worker():
-    """Background worker: inspect each URL, submit if not indexed."""
+    """Background worker: inspect each URL, submit if not indexed. Rotates accounts on 429."""
+    from google.oauth2 import service_account
+    from googleapiclient.discovery import build as gbuild
+
     queue = _bulk_queue
     account_quotas = _load_account_quotas()
     index_db = _load_json(DATA_DIR / "index_status.json", {})
 
-    idx_service = None
-    idx_acct = None
-    for acct in account_quotas.get("accounts", []):
-        if acct.get("index_used", 0) < acct.get("index_limit", 200):
-            cred_file = acct.get("credentials_file", "")
-            if cred_file and Path(cred_file).exists():
-                try:
-                    from google.oauth2 import service_account
-                    from googleapiclient.discovery import build as gbuild
-                    creds = service_account.Credentials.from_service_account_file(
-                        cred_file, scopes=["https://www.googleapis.com/auth/indexing"])
-                    idx_service = gbuild("indexing", "v3", credentials=creds, cache_discovery=False)
-                    idx_acct = acct
-                    break
-                except Exception:
-                    continue
-
-    insp_service = None
-    insp_acct_file = None
-    for acct in account_quotas.get("accounts", []):
-        if acct.get("inspect_used", 0) >= acct.get("inspect_limit", 2000):
-            continue
-        cred_file = acct.get("credentials_file", "")
-        if cred_file and Path(cred_file).exists():
-            try:
-                from google.oauth2 import service_account
-                from googleapiclient.discovery import build as gbuild
-                creds = service_account.Credentials.from_service_account_file(
-                    cred_file, scopes=["https://www.googleapis.com/auth/webmasters.readonly"])
-                insp_service = gbuild("searchconsole", "v1", credentials=creds, cache_discovery=False)
-                insp_acct_file = cred_file
-                break
-            except Exception:
+    # Build all inspection + indexing services from credentials
+    insp_services = []
+    idx_services = []
+    for cred_file in sorted(Path(".").glob("credentials*.json")):
+        try:
+            cred_data = json.loads(cred_file.read_text())
+            if cred_data.get("type") != "service_account":
                 continue
+            insp_creds = service_account.Credentials.from_service_account_file(
+                str(cred_file), scopes=["https://www.googleapis.com/auth/webmasters.readonly"])
+            insp_services.append({
+                "service": gbuild("searchconsole", "v1", credentials=insp_creds, cache_discovery=False),
+                "file": cred_file.name,
+            })
+            idx_creds = service_account.Credentials.from_service_account_file(
+                str(cred_file), scopes=["https://www.googleapis.com/auth/indexing"])
+            idx_services.append({
+                "service": gbuild("indexing", "v3", credentials=idx_creds, cache_discovery=False),
+                "file": cred_file.name,
+            })
+        except Exception:
+            continue
+
+    insp_idx = 0
+    idx_idx = 0
 
     start_from = queue.get("processed", 0)
     for i, url in enumerate(queue["urls"]):
@@ -2907,73 +3019,87 @@ def _bulk_worker():
 
         result = {"url": url, "status": "pending", "coverage": "", "action": "", "error": ""}
 
-        if not insp_service:
+        if not insp_services:
             result["status"] = "error"
-            result["error"] = "No inspection service available"
+            result["error"] = "No inspection credentials found"
             with _bulk_lock:
                 queue["results"].append(result)
                 queue["errors"] += 1
                 queue["processed"] = i + 1
             continue
 
-        try:
-            resp = insp_service.urlInspection().index().inspect(
-                body={"inspectionUrl": url, "siteUrl": SITE_URL}
-            ).execute()
-            idx_result = resp.get("inspectionResult", {}).get("indexStatusResult", {})
-            coverage = idx_result.get("coverageState", "unknown")
-            is_indexed = "indexed" in coverage.lower() and "not" not in coverage.lower()
-            result["coverage"] = coverage
+        # Inspect with account rotation on 429
+        inspected = False
+        attempts = 0
+        while not inspected and attempts < len(insp_services):
+            svc_info = insp_services[insp_idx % len(insp_services)]
+            try:
+                resp = svc_info["service"].urlInspection().index().inspect(
+                    body={"inspectionUrl": url, "siteUrl": SITE_URL}
+                ).execute()
+                idx_result = resp.get("inspectionResult", {}).get("indexStatusResult", {})
+                coverage = idx_result.get("coverageState", "unknown")
+                is_indexed = "indexed" in coverage.lower() and "not" not in coverage.lower()
+                result["coverage"] = coverage
 
-            for a in account_quotas.get("accounts", []):
-                if a.get("credentials_file") == insp_acct_file:
-                    a["inspect_used"] = a.get("inspect_used", 0) + 1
-                    break
+                today = _today_pt()
+                index_db[url] = {
+                    "coverage": coverage,
+                    "is_indexed": is_indexed,
+                    "checked_at": today,
+                    "last_crawl": idx_result.get("lastCrawlTime", ""),
+                    "rich_results": [
+                        it.get("richResultType", "")
+                        for it in resp.get("inspectionResult", {}).get(
+                            "richResultsResult", {}).get("detectedItems", [])
+                    ],
+                }
 
-            today = _today_pt()
-            index_db[url] = {
-                "coverage": coverage,
-                "is_indexed": is_indexed,
-                "checked_at": today,
-                "last_crawl": idx_result.get("lastCrawlTime", ""),
-                "rich_results": [
-                    it.get("richResultType", "")
-                    for it in resp.get("inspectionResult", {}).get(
-                        "richResultsResult", {}).get("detectedItems", [])
-                ],
-            }
-
-            if is_indexed:
-                result["status"] = "indexed"
-                result["action"] = "Already indexed"
-            else:
-                if idx_service and idx_acct and idx_acct.get("index_used", 0) < idx_acct.get("index_limit", 200):
-                    try:
-                        idx_service.urlNotifications().publish(
-                            body={"url": url, "type": "URL_UPDATED"}
-                        ).execute()
-                        result["status"] = "submitted"
-                        result["action"] = "Submitted for indexing"
-                        index_db[url]["submitted_at"] = today
-                        idx_acct["index_used"] = idx_acct.get("index_used", 0) + 1
-                    except Exception as se:
-                        result["status"] = "inspect_only"
-                        result["action"] = f"Not indexed — submit failed: {str(se)[:60]}"
+                if is_indexed:
+                    result["status"] = "indexed"
+                    result["action"] = "Already indexed"
                 else:
-                    result["status"] = "inspect_only"
-                    result["action"] = "Not indexed — no submit quota"
+                    submitted = False
+                    sub_attempts = 0
+                    while not submitted and sub_attempts < len(idx_services):
+                        idx_info = idx_services[idx_idx % len(idx_services)]
+                        try:
+                            idx_info["service"].urlNotifications().publish(
+                                body={"url": url, "type": "URL_UPDATED"}
+                            ).execute()
+                            result["status"] = "submitted"
+                            result["action"] = "Indexing requested via GSC"
+                            index_db[url]["submitted_at"] = today
+                            submitted = True
+                        except Exception as se:
+                            se_str = str(se)
+                            if "429" in se_str or "quota" in se_str.lower():
+                                idx_idx += 1
+                                sub_attempts += 1
+                                time.sleep(0.5)
+                            else:
+                                result["status"] = "inspect_only"
+                                result["action"] = f"Not indexed — submit failed: {se_str[:60]}"
+                                submitted = True
+                    if not submitted:
+                        result["status"] = "inspect_only"
+                        result["action"] = "Not indexed — all submit quotas exceeded"
 
-        except Exception as e:
-            err = str(e)
+                inspected = True
+            except Exception as e:
+                err = str(e)
+                if "429" in err or "quota" in err.lower():
+                    insp_idx += 1
+                    attempts += 1
+                    time.sleep(0.5)
+                else:
+                    result["status"] = "error"
+                    result["error"] = err[:120]
+                    inspected = True
+
+        if not inspected:
             result["status"] = "error"
-            result["error"] = err[:120]
-            if "429" in err or "quota" in err.lower():
-                result["error"] = "Rate limited — quota exceeded"
-                for a in account_quotas.get("accounts", []):
-                    if a.get("credentials_file") == insp_acct_file:
-                        a["inspect_used"] = a["inspect_limit"]
-                        break
-                _save_json(DATA_DIR / "account_quotas.json", account_quotas)
+            result["error"] = "All inspection quotas exceeded"
 
         with _bulk_lock:
             queue["results"].append(result)
@@ -2983,13 +3109,11 @@ def _bulk_worker():
             queue["current_url"] = ""
 
         if (i + 1) % 10 == 0:
-            _save_json(DATA_DIR / "account_quotas.json", account_quotas)
             _save_json(DATA_DIR / "index_status.json", index_db)
 
         time.sleep(DELAY)
 
     _save_json(DATA_DIR / "index_status.json", index_db)
-    _save_json(DATA_DIR / "account_quotas.json", account_quotas)
 
     with _bulk_lock:
         queue["state"] = "done"
@@ -3194,6 +3318,69 @@ def api_bulk_results():
     """Return the latest bulk indexing results."""
     data = _load_json(DATA_DIR / "bulk_indexing_results.json", {})
     return jsonify(data)
+
+
+# ─── Extension Queue Relay ─────────────────────────────────────────────
+# Dashboard queues URLs here; extension polls and picks them up for
+# browser-based GSC processing (no API quota limits).
+
+@app.route("/api/extension/queue", methods=["POST"])
+@handle_errors
+def api_extension_queue_start():
+    """Dashboard sends URLs for the extension to process via browser."""
+    data = request.get_json() or {}
+    urls = [u.strip() for u in data.get("urls", []) if u.strip().startswith("http")]
+    if not urls:
+        return jsonify({"error": "No valid URLs"}), 400
+    queue_data = {
+        "state": "pending",
+        "urls": urls,
+        "total": len(urls),
+        "created_at": datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+    }
+    _save_json(DATA_DIR / "extension_queue.json", queue_data)
+    return jsonify({"ok": True, "queued": len(urls)})
+
+
+@app.route("/api/extension/queue/pending")
+@handle_errors
+def api_extension_queue_pending():
+    """Extension polls this to check for dashboard-queued URLs."""
+    queue_data = _load_json(DATA_DIR / "extension_queue.json", {})
+    if queue_data.get("state") == "pending":
+        return jsonify(queue_data)
+    return jsonify({"state": "empty"})
+
+
+@app.route("/api/extension/queue/ack", methods=["POST"])
+@handle_errors
+def api_extension_queue_ack():
+    """Extension acknowledges it picked up the queue."""
+    queue_data = _load_json(DATA_DIR / "extension_queue.json", {})
+    queue_data["state"] = "picked_up"
+    queue_data["picked_at"] = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    _save_json(DATA_DIR / "extension_queue.json", queue_data)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/extension/queue/status")
+@handle_errors
+def api_extension_queue_status():
+    """Dashboard polls this for extension processing status."""
+    queue_data = _load_json(DATA_DIR / "extension_queue.json", {})
+    bulk_results = _load_json(DATA_DIR / "bulk_indexing_results.json", {})
+    return jsonify({
+        "queue": queue_data,
+        "results": bulk_results,
+    })
+
+
+@app.route("/api/extension/queue/clear", methods=["POST"])
+@handle_errors
+def api_extension_queue_clear():
+    """Clear the extension queue."""
+    _save_json(DATA_DIR / "extension_queue.json", {})
+    return jsonify({"ok": True})
 
 
 @app.route("/api/classifications")
