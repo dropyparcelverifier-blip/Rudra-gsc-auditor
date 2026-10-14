@@ -10,7 +10,7 @@ let dashboardSyncPending = false;
 function getApiUrl() {
   if (DASHBOARD_URL.includes('localhost:3001') || DASHBOARD_URL.includes('localhost:3000') || DASHBOARD_URL.includes('localhost:5000')) {
     DASHBOARD_URL = 'http://localhost:5001';
-    chrome.storage.local.set({ dashboardUrl: DASHBOARD_URL });
+    chrome.storage.sync.set({ dashboardUrl: DASHBOARD_URL });
   }
   return DASHBOARD_URL;
 }
@@ -31,27 +31,43 @@ function saveQueue() {
 }
 
 function loadQueue() {
-  chrome.storage.local.get(['queue', 'dashboardUrl', 'gscTabId', 'property', 'lastScrapedData', 'dashboardSyncPending'], (d) => {
-    if (d.queue) {
-      queue = d.queue;
-      if (queue.state === 'running') queue.state = 'paused';
-    }
-    if (d.dashboardUrl) DASHBOARD_URL = d.dashboardUrl;
-    if (d.property) PROPERTY = d.property;
-    if (d.gscTabId) gscTabId = d.gscTabId;
-    if (d.lastScrapedData) lastScrapedData = d.lastScrapedData;
-    if (d.dashboardSyncPending) dashboardSyncPending = true;
+  // Settings sync across Chrome profiles/PCs via chrome.storage.sync
+  chrome.storage.sync.get(['dashboardUrl', 'property'], (s) => {
+    // Migrate settings from local → sync on first run after upgrade
+    chrome.storage.local.get(['dashboardUrl', 'property', 'queue', 'gscTabId', 'lastScrapedData', 'dashboardSyncPending'], (d) => {
+      if (!s.dashboardUrl && d.dashboardUrl) {
+        DASHBOARD_URL = d.dashboardUrl;
+        chrome.storage.sync.set({ dashboardUrl: DASHBOARD_URL });
+      } else if (s.dashboardUrl) {
+        DASHBOARD_URL = s.dashboardUrl;
+      }
+      if (!s.property && d.property) {
+        PROPERTY = d.property;
+        chrome.storage.sync.set({ property: PROPERTY });
+      } else if (s.property) {
+        PROPERTY = s.property;
+      }
 
-    if (DASHBOARD_URL.includes('localhost:3001') || DASHBOARD_URL.includes('localhost:3000') || DASHBOARD_URL.includes('localhost:5000')) {
-      console.warn('[GSC-EXT] Dashboard URL was pointing to React dev server, fixing to Flask API port 5001');
-      DASHBOARD_URL = 'http://localhost:5001';
-      chrome.storage.local.set({ dashboardUrl: DASHBOARD_URL });
-    }
+      if (DASHBOARD_URL.includes('localhost:3001') || DASHBOARD_URL.includes('localhost:3000') || DASHBOARD_URL.includes('localhost:5000')) {
+        console.warn('[GSC-EXT] Dashboard URL was pointing to React dev server, fixing to Flask API port 5001');
+        DASHBOARD_URL = 'http://localhost:5001';
+        chrome.storage.sync.set({ dashboardUrl: DASHBOARD_URL });
+      }
 
-    if (dashboardSyncPending && queue.results.length > 0) {
-      console.log('[GSC-EXT] Retrying pending dashboard sync...');
-      sendBulkResultsToDashboard();
-    }
+      // Runtime data stays local (device-specific, larger quota)
+      if (d.queue) {
+        queue = d.queue;
+        if (queue.state === 'running') queue.state = 'paused';
+      }
+      if (d.gscTabId) gscTabId = d.gscTabId;
+      if (d.lastScrapedData) lastScrapedData = d.lastScrapedData;
+      if (d.dashboardSyncPending) dashboardSyncPending = true;
+
+      if (dashboardSyncPending && queue.results.length > 0) {
+        console.log('[GSC-EXT] Retrying pending dashboard sync...');
+        sendBulkResultsToDashboard();
+      }
+    });
   });
 }
 
@@ -649,11 +665,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       case 'GET_SETTINGS': return { dashboardUrl: DASHBOARD_URL, property: PROPERTY, syncPending: dashboardSyncPending };
       case 'SET_DASHBOARD_URL':
         DASHBOARD_URL = msg.url || DEFAULT_DASHBOARD_URL;
-        chrome.storage.local.set({ dashboardUrl: DASHBOARD_URL });
+        chrome.storage.sync.set({ dashboardUrl: DASHBOARD_URL });
         return { ok: true, dashboardUrl: DASHBOARD_URL };
       case 'SET_PROPERTY':
         PROPERTY = msg.property || DEFAULT_PROPERTY;
-        chrome.storage.local.set({ property: PROPERTY });
+        chrome.storage.sync.set({ property: PROPERTY });
         return { ok: true, property: PROPERTY };
       case 'GET_SCRAPED_DATA':
         return { data: lastScrapedData };
@@ -674,3 +690,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 });
 
 loadQueue();
+
+// Live-sync settings from other Chrome instances
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== 'sync') return;
+  if (changes.dashboardUrl) DASHBOARD_URL = changes.dashboardUrl.newValue || DEFAULT_DASHBOARD_URL;
+  if (changes.property) PROPERTY = changes.property.newValue || DEFAULT_PROPERTY;
+});
