@@ -62,11 +62,12 @@ export default function UrlBrowser() {
 
   const statusColor = (s) => {
     if (!s) return 'bg-slate-100 text-slate-600';
-    if (s.includes('indexed') && !s.includes('not')) return 'bg-emerald-100 text-emerald-700';
-    if (s.includes('not indexed')) return 'bg-amber-100 text-amber-700';
-    if (s.includes('unknown')) return 'bg-red-100 text-red-700';
-    if (s.includes('robots')) return 'bg-purple-100 text-purple-700';
-    if (s.includes('Discovered')) return 'bg-blue-100 text-blue-700';
+    const l = s.toLowerCase();
+    if (l.includes('indexed') && !l.includes('not')) return 'bg-emerald-100 text-emerald-700';
+    if (l.includes('not indexed')) return 'bg-amber-100 text-amber-700';
+    if (l.includes('unknown')) return 'bg-red-100 text-red-700';
+    if (l.includes('robots')) return 'bg-purple-100 text-purple-700';
+    if (l.includes('discovered')) return 'bg-blue-100 text-blue-700';
     return 'bg-slate-100 text-slate-600';
   };
 

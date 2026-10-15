@@ -9,7 +9,7 @@ const SOURCES = {
 };
 
 export default function DataSourceBadge({ source, className = '' }) {
-  const s = SOURCES[source] || { label: source, bg: 'bg-slate-100', text: 'text-slate-600' };
+  const s = SOURCES[source] || { label: source || 'Unknown', bg: 'bg-slate-100', text: 'text-slate-600' };
   return (
     <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold ${s.bg} ${s.text} ${className}`}>
       {s.label}

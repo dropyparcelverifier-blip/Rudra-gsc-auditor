@@ -23,18 +23,21 @@ export default function Snippets({ data, loading, refresh }) {
   const pipeline = data.pipeline || {};
   const richBreakdown = pipeline.rich_breakdown || {};
 
-  const snippetData = Object.entries(liveSnippets).map(([key, stats]) => ({
-    name: SNIPPET_NAMES[key] || key,
-    key,
-    impressions: stats.impressions || 0,
-    clicks: stats.clicks || 0,
-    ctr: stats.ctr || 0,
-    position: stats.avg_position || 0,
-  }));
+  const snippetData = Object.entries(liveSnippets)
+    .filter(([, stats]) => stats && typeof stats === 'object')
+    .map(([key, stats], idx) => ({
+      name: SNIPPET_NAMES[key] || key,
+      key,
+      impressions: stats.impressions || 0,
+      clicks: stats.clicks || 0,
+      ctr: stats.ctr || 0,
+      position: stats.avg_position || 0,
+      color: COLORS[idx % COLORS.length],
+    }));
 
   const totalImpressions = snippetData.reduce((s, d) => s + d.impressions, 0);
   const totalClicks = snippetData.reduce((s, d) => s + d.clicks, 0);
-  const pieData = snippetData.map(d => ({ name: d.name, value: d.impressions }));
+  const pieData = snippetData.map(d => ({ name: d.name, value: d.impressions, color: d.color }));
 
   const richCards = [
     { key: 'Product', label: 'Product Snippets', icon: Package, color: 'purple', border: 'border-purple-200', bg: 'bg-purple-50', text: 'text-purple-700' },
@@ -101,7 +104,7 @@ export default function Snippets({ data, loading, refresh }) {
             {snippetData.map((s, i) => (
               <div key={s.key} className="rounded-xl border border-slate-200 bg-white p-5">
                 <div className="mb-3 flex items-center gap-2">
-                  <div className="h-3 w-3 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
+                  <div className="h-3 w-3 rounded-full" style={{ background: s.color }} />
                   <span className="text-sm font-semibold text-slate-700">{s.name}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -119,7 +122,7 @@ export default function Snippets({ data, loading, refresh }) {
                   <span>Avg Pos: <span className="font-semibold text-slate-700">{s.position}</span></span>
                 </div>
                 <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                  <div className="h-full rounded-full" style={{ background: COLORS[i % COLORS.length], width: `${totalImpressions ? (s.impressions / totalImpressions * 100) : 0}%` }} />
+                  <div className="h-full rounded-full" style={{ background: s.color, width: `${totalImpressions ? (s.impressions / totalImpressions * 100) : 0}%` }} />
                 </div>
               </div>
             ))}
@@ -133,7 +136,7 @@ export default function Snippets({ data, loading, refresh }) {
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={95} paddingAngle={2}>
-                  {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                  {pieData.map((d, i) => <Cell key={i} fill={d.color} />)}
                 </Pie>
                 <Tooltip formatter={(v) => v.toLocaleString()} />
               </PieChart>
@@ -148,7 +151,7 @@ export default function Snippets({ data, loading, refresh }) {
                 <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(v) => v.toLocaleString()} />
                 <Bar dataKey="clicks" radius={[0, 6, 6, 0]} barSize={26}>
-                  {snippetData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                  {snippetData.map((d, i) => <Cell key={i} fill={d.color} />)}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -169,10 +172,10 @@ export default function Snippets({ data, loading, refresh }) {
               </tr>
             </thead>
             <tbody>
-              {[...snippetData].sort((a, b) => b.impressions - a.impressions).map((d, i) => (
+              {[...snippetData].sort((a, b) => b.impressions - a.impressions).map((d) => (
                 <tr key={d.key} className="border-b border-slate-50 hover:bg-slate-50">
                   <td className="px-4 py-2.5 flex items-center gap-2">
-                    <div className="h-2.5 w-2.5 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
+                    <div className="h-2.5 w-2.5 rounded-full" style={{ background: d.color }} />
                     {d.name}
                   </td>
                   <td className="px-4 py-2.5 text-right font-semibold">{d.impressions.toLocaleString()}</td>

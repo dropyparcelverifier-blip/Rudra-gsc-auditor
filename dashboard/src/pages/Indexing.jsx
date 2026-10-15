@@ -159,15 +159,15 @@ export default function Indexing({ data, loading, refresh }) {
             </h2>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[
-                { key: 'submit', label: 'Submit for Indexing', count: actionCounts.submit || 0, color: 'purple', canSubmit: true },
-                { key: 'not_indexed', label: 'Not Indexed', count: pipelineNotIndexed, color: 'red' },
-                { key: 'indexed', label: 'Indexed', count: pipelineIndexed, color: 'emerald' },
-                { key: 'snippet', label: 'Has Rich Results', count: actionCounts.snippet || 0, color: 'amber' },
+                { key: 'submit', label: 'Submit for Indexing', count: actionCounts.submit || 0, active: 'border-purple-500 ring-2 ring-purple-200', title: 'text-purple-600', value: 'text-purple-700', canSubmit: true },
+                { key: 'not_indexed', label: 'Not Indexed', count: pipelineNotIndexed, active: 'border-red-500 ring-2 ring-red-200', title: 'text-red-600', value: 'text-red-700' },
+                { key: 'indexed', label: 'Indexed', count: pipelineIndexed, active: 'border-emerald-500 ring-2 ring-emerald-200', title: 'text-emerald-600', value: 'text-emerald-700' },
+                { key: 'snippet', label: 'Has Rich Results', count: actionCounts.snippet || 0, active: 'border-amber-500 ring-2 ring-amber-200', title: 'text-amber-600', value: 'text-amber-700' },
               ].map(item => (
                 <button key={item.key} onClick={() => loadCategoryUrls(item.key)}
-                  className={`rounded-xl border p-4 text-left transition hover:shadow-md ${selectedCat === item.key ? `border-${item.color}-500 ring-2 ring-${item.color}-200` : 'border-slate-200'}`}>
-                  <p className={`text-[10px] font-semibold uppercase text-${item.color}-600`}>{item.label}</p>
-                  <p className={`mt-1 text-2xl font-extrabold text-${item.color}-700`}>{item.count.toLocaleString()}</p>
+                  className={`rounded-xl border p-4 text-left transition hover:shadow-md ${selectedCat === item.key ? item.active : 'border-slate-200'}`}>
+                  <p className={`text-[10px] font-semibold uppercase ${item.title}`}>{item.label}</p>
+                  <p className={`mt-1 text-2xl font-extrabold ${item.value}`}>{item.count.toLocaleString()}</p>
                   <p className="mt-1 text-[10px] text-slate-500">Click to view URLs →</p>
                 </button>
               ))}
