@@ -31,7 +31,7 @@ export default function Indexing({ data, loading, refresh }) {
   const [catLoading, setCatLoading] = useState(false);
 
   const fetchClassifications = useCallback(async () => {
-    try { setClassData(await api.getClassifications()); } catch {}
+    try { setClassData(await api.getClassifications()); } catch (e) { console.error('Failed to load classifications:', e); }
   }, []);
 
   useEffect(() => { fetchClassifications(); }, [fetchClassifications]);

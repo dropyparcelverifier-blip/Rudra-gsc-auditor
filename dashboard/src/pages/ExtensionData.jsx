@@ -42,7 +42,7 @@ export default function ExtensionData() {
       ]);
       if (gsc.status === 'fulfilled') setGscData(gsc.value);
       if (bulk.status === 'fulfilled') setBulkResults(bulk.value);
-    } catch {}
+    } catch (e) { console.error('Failed to fetch extension data:', e); }
     if (!silent) setLoading(false);
   };
 

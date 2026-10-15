@@ -270,19 +270,19 @@ export default function BulkTool() {
   };
 
   const handlePause = async () => {
-    try { await api.bulkQueuePause(); fetchStatus(); } catch {}
+    try { await api.bulkQueuePause(); fetchStatus(); } catch (e) { setError(e.message || 'Failed to pause'); }
   };
 
   const handleResume = async () => {
-    try { await api.bulkQueueResume(); setPolling(true); fetchStatus(); } catch {}
+    try { await api.bulkQueueResume(); setPolling(true); fetchStatus(); } catch (e) { setError(e.message || 'Failed to resume'); }
   };
 
   const handleStop = async () => {
-    try { await api.bulkQueueStop(); setPolling(false); fetchStatus(); } catch {}
+    try { await api.bulkQueueStop(); setPolling(false); fetchStatus(); } catch (e) { setError(e.message || 'Failed to stop'); }
   };
 
   const handleClear = async () => {
-    try { await api.bulkQueueClear(); setQueue(null); setUrlText(''); setEtaText(''); startTime.current = null; fetchStatus(); } catch {}
+    try { await api.bulkQueueClear(); setQueue(null); setUrlText(''); setEtaText(''); startTime.current = null; fetchStatus(); } catch (e) { setError(e.message || 'Failed to clear'); }
   };
 
   const handleImportCSV = () => {
