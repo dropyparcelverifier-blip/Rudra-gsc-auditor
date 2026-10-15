@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Globe, FileSearch, Server, Settings,
-  BarChart3, Search, TrendingUp, Activity, Zap, Chrome,
+  BarChart3, TrendingUp, Activity, Zap, Chrome,
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -37,20 +37,20 @@ export default function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-56 flex-col border-r border-slate-200 bg-white">
       {/* Brand */}
-      <div className="flex items-center gap-3 border-b border-slate-200 px-5 py-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-red-600 shadow-lg shadow-orange-200/50">
+      <div className="flex items-center gap-3 border-b border-slate-100 px-5 py-4">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-red-600 shadow-lg shadow-orange-200/50 transition-transform duration-200 hover:scale-105">
           <span className="text-sm font-extrabold text-white tracking-tight">R</span>
         </div>
         <div>
-          <div className="text-sm font-bold text-slate-900">Rudra Retail</div>
+          <div className="text-sm font-bold text-slate-900 tracking-tight">Rudra Retail</div>
           <div className="text-[10px] font-medium text-slate-400">SEO Dashboard</div>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 py-3">
+      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
         {sections.map((section) => (
-          <div key={section.label} className="mb-4">
+          <div key={section.label} className="mb-3">
             <div className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">
               {section.label}
             </div>
@@ -72,14 +72,14 @@ export default function Sidebar() {
                   {({ isActive }) => (
                     <>
                       {isActive && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-orange-500" />
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-gradient-to-b from-orange-500 to-red-500" />
                       )}
                       <span
                         className={clsx(
-                          'flex h-7 w-7 items-center justify-center rounded-lg transition-colors',
+                          'flex h-7 w-7 items-center justify-center rounded-lg transition-all duration-150',
                           isActive
                             ? 'bg-orange-100 text-orange-600'
-                            : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700'
+                            : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700 group-hover:scale-105'
                         )}
                       >
                         <Icon size={15} />
@@ -95,11 +95,12 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-slate-200 px-4 py-3">
+      <div className="border-t border-slate-100 px-4 py-3">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
           <p className="text-[10px] font-medium text-slate-500">rudraretails.com</p>
         </div>
+        <p className="mt-1 text-[9px] text-slate-300 pl-4">Rudra GSC Auditor</p>
       </div>
     </aside>
   );
