@@ -300,7 +300,7 @@ async function scrapeEnhancementPage(path) {
     return { valid: '', error: '', warning: '', issues: [], rawSnippet: '', notAvailable: true };
   }
 
-  return await injectAndRun(tabId, () => {
+  const mainData = await injectAndRun(tabId, () => {
     const text = document.body?.innerText || '';
     const data = { valid: '', error: '', warning: '', issues: [], rawSnippet: '' };
 
@@ -332,14 +332,77 @@ async function scrapeEnhancementPage(path) {
         const issue = cells[0]?.innerText?.trim() || '';
         const count = cells[cells.length - 1]?.innerText?.trim() || '';
         if (issue && issue !== 'Issue' && issue !== 'Status') {
-          data.issues.push({ issue, count });
+          data.issues.push({ issue, count, urls: [] });
         }
+      }
+    });
+
+    // Try to find clickable issue rows to drill into
+    data.issueLinks = [];
+    document.querySelectorAll('table tr a[href], [role="row"] a[href]').forEach(a => {
+      const href = a.getAttribute('href') || '';
+      if (href.includes('/r/') || href.includes('issue_id')) {
+        data.issueLinks.push({ text: a.innerText?.trim() || '', href });
       }
     });
 
     data.rawSnippet = text.split('\n').filter(l => l.trim()).slice(0, 30).join('\n');
     return data;
   });
+
+  // Drill into each issue to scrape affected URLs (up to 5 issues, 20 URLs each)
+  if (mainData.issues && mainData.issues.length > 0) {
+    for (let i = 0; i < Math.min(mainData.issues.length, 5); i++) {
+      try {
+        // Click on issue row to navigate to detail page
+        const clicked = await injectAndRun(tabId, (issueText) => {
+          const rows = document.querySelectorAll('table tr, [role="row"]');
+          for (const row of rows) {
+            if (row.innerText?.includes(issueText)) {
+              const link = row.querySelector('a[href]') || row;
+              link.click();
+              return true;
+            }
+          }
+          return false;
+        }, mainData.issues[i].issue);
+
+        if (clicked) {
+          await waitForPageLoad(tabId, 5000);
+          const urls = await injectAndRun(tabId, () => {
+            const urlList = [];
+            // GSC issue detail pages show URLs in a table
+            document.querySelectorAll('table tr, [role="row"]').forEach(row => {
+              const cells = row.querySelectorAll('td, [role="cell"]');
+              if (cells.length >= 1) {
+                const urlText = cells[0]?.innerText?.trim() || '';
+                if (urlText.startsWith('http') || urlText.startsWith('/')) {
+                  urlList.push(urlText);
+                }
+              }
+            });
+            // Also check for links
+            if (urlList.length === 0) {
+              document.querySelectorAll('a[href*="rudraretails"]').forEach(a => {
+                const href = a.getAttribute('href') || a.innerText?.trim() || '';
+                if (href.includes('rudraretails')) urlList.push(href);
+              });
+            }
+            return urlList.slice(0, 20);
+          });
+          mainData.issues[i].urls = urls || [];
+
+          // Go back to the main enhancement page
+          await chrome.tabs.update(tabId, { url: `${GSC_BASE}/${path}?resource_id=${encodeURIComponent(PROPERTY)}` });
+          await waitForPageLoad(tabId, 5000);
+        }
+      } catch (e) {
+        console.warn(`[GSC-EXT] Could not drill into issue "${mainData.issues[i].issue}":`, e.message);
+      }
+    }
+  }
+
+  return mainData;
 }
 
 // ─── Specific Scrapers ───
@@ -692,6 +755,54 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 });
 
 loadQueue();
+
+// ─── Dashboard Queue Polling ───
+// Poll the dashboard for URLs queued via the Bulk Tool's "Extension" mode.
+// When found, acknowledge and start browser-based processing automatically.
+
+let dashboardPollTimer = null;
+const DASHBOARD_POLL_INTERVAL = 15000;
+
+async function pollDashboardQueue() {
+  if (queue.state === 'running' || queue.state === 'paused') return;
+  try {
+    const resp = await fetch(`${getApiUrl()}/api/extension/queue/pending`);
+    if (!resp.ok) return;
+    const data = await resp.json();
+    if (data.state !== 'pending' || !data.urls?.length) return;
+
+    console.log(`[GSC-EXT] Dashboard queued ${data.urls.length} URLs — starting browser processing`);
+
+    // Acknowledge pickup
+    await fetch(`${getApiUrl()}/api/extension/queue/ack`, { method: 'POST' });
+
+    // Start the browser-based queue
+    if (processingTimeout) clearTimeout(processingTimeout);
+    isProcessing = false;
+    queue = {
+      state: 'running',
+      urls: data.urls,
+      results: [],
+      processed: 0,
+      errors: 0,
+      total: data.urls.length,
+      currentUrl: '',
+    };
+    saveQueue();
+    broadcastState();
+    processNext();
+  } catch (e) {
+    // Dashboard not reachable — ignore
+  }
+}
+
+function startDashboardPolling() {
+  if (dashboardPollTimer) clearInterval(dashboardPollTimer);
+  dashboardPollTimer = setInterval(pollDashboardQueue, DASHBOARD_POLL_INTERVAL);
+  pollDashboardQueue();
+}
+
+startDashboardPolling();
 
 // Live-sync settings from other Chrome instances
 chrome.storage.onChanged.addListener((changes, area) => {
