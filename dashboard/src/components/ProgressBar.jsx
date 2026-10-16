@@ -2,14 +2,16 @@ export default function ProgressBar({ current, total, label, color = 'from-blue-
   const pct = total > 0 ? Math.round((current / total) * 100 * 10) / 10 : 0;
   return (
     <div>
-      <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+      <div className="flex items-center justify-between text-xs text-slate-500 mb-1.5">
         <span className="font-medium">{label}</span>
-        <span>{current.toLocaleString()} / {total.toLocaleString()} ({pct}%)</span>
+        <span className="tabular-nums">{current.toLocaleString()} / {total.toLocaleString()} <span className="font-semibold text-slate-700">({pct}%)</span></span>
       </div>
-      <div className="h-5 overflow-hidden rounded-full bg-slate-100">
-        <div className={`h-full rounded-full bg-gradient-to-r ${color} transition-all duration-700 flex items-center justify-center text-[10px] font-bold text-white`}
-          style={{ width: `${Math.max(2, pct)}%` }}>
-          {pct > 8 ? `${pct}%` : ''}
+      <div className="h-5 overflow-hidden rounded-full bg-slate-100 shadow-inner">
+        <div
+          className={`h-full rounded-full bg-gradient-to-r ${color} transition-all duration-700 ease-out flex items-center justify-center text-[10px] font-bold text-white shadow-sm`}
+          style={{ width: `${Math.max(pct > 0 ? 3 : 0, pct)}%` }}
+        >
+          {pct > 10 ? `${pct}%` : ''}
         </div>
       </div>
     </div>

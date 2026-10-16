@@ -25,11 +25,11 @@ export default function CoverageBreakdown({ breakdown, totalTracked, title }) {
             return (
               <div key={reason}>
                 <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="font-medium text-slate-700">{reason}</span>
-                  <span className="text-slate-500">{count.toLocaleString()} ({pct}%)</span>
+                  <span className="font-medium text-slate-700 truncate mr-2">{reason}</span>
+                  <span className="tabular-nums text-slate-500 flex-shrink-0">{count.toLocaleString()} ({pct}%)</span>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                  <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
+                <div className="h-2.5 overflow-hidden rounded-full bg-slate-100 shadow-inner">
+                  <div className={`h-full rounded-full ${color} transition-all duration-500 ease-out`} style={{ width: `${pct}%` }} />
                 </div>
               </div>
             );

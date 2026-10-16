@@ -4,10 +4,10 @@ export default function FreshnessRow({ label, count, total, color }) {
     <div>
       <div className="flex items-center justify-between text-xs mb-1">
         <span className="font-medium text-slate-700">{label}</span>
-        <span className="text-slate-500">{count.toLocaleString()} ({pct}%)</span>
+        <span className="tabular-nums text-slate-500">{count.toLocaleString()} <span className="font-semibold">({pct}%)</span></span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-        <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
+      <div className="h-2.5 overflow-hidden rounded-full bg-slate-100 shadow-inner">
+        <div className={`h-full rounded-full ${color} transition-all duration-500 ease-out`} style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
