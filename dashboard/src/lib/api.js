@@ -1,10 +1,8 @@
 const BASE = '/api';
 
 async function fetchJSON(url, opts = {}) {
-  const res = await fetch(BASE + url, {
-    headers: { 'Content-Type': 'application/json' },
-    ...opts,
-  });
+  const headers = opts.body ? { 'Content-Type': 'application/json', ...opts.headers } : { ...opts.headers };
+  const res = await fetch(BASE + url, { ...opts, headers });
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     throw new Error(text || `HTTP ${res.status}`);
@@ -44,6 +42,18 @@ export const api = {
 
   // Change log (de-indexing, newly indexed, status changes)
   getChanges: (params) => fetchJSON('/changes?' + new URLSearchParams(params)),
+
+  // Bulk queue
+  bulkQueueStart: (urls) => fetchJSON('/bulk-queue', { method: 'POST', body: JSON.stringify({ urls }) }),
+  bulkQueueStatus: () => fetchJSON('/bulk-queue/status'),
+  bulkQueuePause: () => fetchJSON('/bulk-queue/pause', { method: 'POST' }),
+  bulkQueueResume: () => fetchJSON('/bulk-queue/resume', { method: 'POST' }),
+  bulkQueueStop: () => fetchJSON('/bulk-queue/stop', { method: 'POST' }),
+  bulkQueueClear: () => fetchJSON('/bulk-queue/clear', { method: 'POST' }),
+
+  // Extension data
+  getExtensionGscData: () => fetchJSON('/extension/gsc-data'),
+  getBulkResults: () => fetchJSON('/bulk-results'),
 
   // Actions
   smartSync: () => fetchJSON('/smart-sync', { method: 'POST' }),

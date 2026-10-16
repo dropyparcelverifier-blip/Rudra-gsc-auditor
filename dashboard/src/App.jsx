@@ -10,6 +10,8 @@ import UrlBrowser from './pages/UrlBrowser';
 import Monitoring from './pages/Monitoring';
 import Accounts from './pages/Accounts';
 import Settings from './pages/Settings';
+import BulkTool from './pages/BulkTool';
+import ExtensionData from './pages/ExtensionData';
 
 export default function App() {
   const { data, loading, error, refresh, lastFetched } = useDashboard();
@@ -32,6 +34,8 @@ export default function App() {
           <Route path="/monitoring" element={<Monitoring />} />
           <Route path="/accounts" element={<Accounts />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/bulk-tool" element={<BulkTool />} />
+          <Route path="/extension" element={<ExtensionData />} />
         </Routes>
       </main>
       <PipelineNotification />
