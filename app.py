@@ -157,6 +157,17 @@ class AuditResult:
     actions: Optional[List] = None
     score: int = 0
 
+GSC_OFFLINE_STUB = {
+    "verdict": "-", "coverage": "Connect GSC to check", "robots": "-", "indexing": "-",
+    "fetch": "-", "last_crawl": "-", "g_canonical": "", "u_canonical": "", "crawled_as": "-",
+    "in_sitemap": False, "referring": [], "rich_verdict": "-", "rich_issues": [], "rich_types": [],
+    "link": "", "error": "Not connected", "skipped": True,
+}
+SA_OFFLINE_STUB = {
+    "clicks": 0, "impr": 0, "pos": 0, "ctr": 0, "queries": [], "quick_wins": [],
+    "mobile_pct": 0, "appearances": [], "error": "Not connected", "skipped": True,
+}
+
 # ─────────────────────────────────────────────
 # FLASK APP SETUP
 # ─────────────────────────────────────────────
@@ -1002,12 +1013,8 @@ def audit_url_parallel(url: str) -> AuditResult:
             gsc = gsc_inspect(url)
             sa = gsc_analytics(url)
         else:
-            gsc = {"verdict": "-", "coverage": "Connect GSC to check", "robots": "-", "indexing": "-",
-                   "fetch": "-", "last_crawl": "-", "g_canonical": "", "u_canonical": "", "crawled_as": "-",
-                   "in_sitemap": False, "referring": [], "rich_verdict": "-", "rich_issues": [], "rich_types": [],
-                   "link": "", "error": "Not connected", "skipped": True}
-            sa = {"clicks": 0, "impr": 0, "pos": 0, "ctr": 0, "queries": [], "quick_wins": [],
-                  "mobile_pct": 0, "appearances": [], "error": "Not connected", "skipped": True}
+            gsc = {**GSC_OFFLINE_STUB, "referring": [], "rich_issues": [], "rich_types": []}
+            sa = {**SA_OFFLINE_STUB, "queries": [], "quick_wins": [], "appearances": []}
 
         actions = decide(pf, gsc if (not gsc.get("error") or gsc.get("skipped")) else {}, sa)
         score = sa.get("impr", 0) + (100000 if any(act["p"] == 1 for act in actions) else 0) + (10000 if any(act["p"] == 2 for act in actions) else 0)
@@ -1067,12 +1074,8 @@ def api_audit():
         gsc = gsc_inspect(url)
         sa = gsc_analytics(url)
     else:
-        gsc = {"verdict": "-", "coverage": "Connect GSC to check", "robots": "-", "indexing": "-",
-               "fetch": "-", "last_crawl": "-", "g_canonical": "", "u_canonical": "", "crawled_as": "-",
-               "in_sitemap": False, "referring": [], "rich_verdict": "-", "rich_issues": [], "rich_types": [],
-               "link": "", "error": "Not connected", "skipped": True}
-        sa = {"clicks": 0, "impr": 0, "pos": 0, "ctr": 0, "queries": [], "quick_wins": [],
-              "mobile_pct": 0, "appearances": [], "error": "Not connected", "skipped": True}
+        gsc = {**GSC_OFFLINE_STUB, "referring": [], "rich_issues": [], "rich_types": []}
+        sa = {**SA_OFFLINE_STUB, "queries": [], "quick_wins": [], "appearances": []}
 
     actions = decide(pf, gsc if (not gsc.get("error") or gsc.get("skipped")) else {}, sa)
     score = sa.get("impr", 0) + (100000 if any(act["p"] == 1 for act in actions) else 0) + (10000 if any(act["p"] == 2 for act in actions) else 0)
