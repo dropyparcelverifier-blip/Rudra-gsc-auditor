@@ -1233,9 +1233,7 @@ def api_verify_url():
                 title = p.get("title", "")
                 body_html = p.get("body_html", "")
                 desc_words = len(re.sub(r'<[^>]+>', ' ', body_html).split()) if body_html else 0
-                # Check variants for inventory
                 variants = p.get("variants", [])
-                in_stock = any(v.get("available", False) for v in variants)
         except urllib.error.HTTPError as e:
             if e.code == 404:
                 shopify_exists = False
@@ -2598,12 +2596,10 @@ def api_live_all():
                     start_row += 25000
                 indexed_from_sa = len(all_pages)
                 _set_cache("indexed_page_count", indexed_from_sa)
-            is_capped = False
             if "sitemaps" in results:
                 sm_data = results["sitemaps"]
                 if sm_data["total_indexed"] == 0 and indexed_from_sa > 0:
                     sm_data["indexed_from_search"] = indexed_from_sa
-                    sm_data["indexed_capped"] = is_capped
                     sm_data["total_indexed"] = indexed_from_sa
                     sm_data["total_not_indexed"] = max(0, sm_data["total_submitted"] - indexed_from_sa)
                     sm_data["index_rate"] = round(indexed_from_sa / sm_data["total_submitted"] * 100, 1) if sm_data["total_submitted"] else 0
@@ -3209,7 +3205,7 @@ def api_classifications():
     not_indexed = total - indexed
 
     # Coverage action breakdown
-    action_counts = {"inspect": 0, "submit": 0, "snippet": 0, "search": 0, "skip": 0}
+    action_counts = {"submit": 0, "snippet": 0, "search": 0, "skip": 0}
     coverage_actions = {}
     for url, info in index_db.items():
         coverage = info.get("coverage", "Unknown")
