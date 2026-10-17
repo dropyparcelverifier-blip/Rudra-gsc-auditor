@@ -3,6 +3,7 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianG
 import StatCard from '../components/StatCard';
 import Header from '../components/Header';
 import DataSourceBadge from '../components/DataSourceBadge';
+import IndexDonut from '../components/IndexDonut';
 import { computePipelineStats } from '../lib/pipelineStats';
 
 const DEVICE_ICONS = { DESKTOP: Monitor, MOBILE: Smartphone, TABLET: Tablet };
@@ -20,35 +21,6 @@ function CustomTooltip({ active, payload, label }) {
           <span className="font-bold text-slate-800">{(p.value || 0).toLocaleString()}</span>
         </div>
       ))}
-    </div>
-  );
-}
-
-function IndexDonut({ indexed, notIndexed }) {
-  const total = indexed + notIndexed;
-  if (!total) return null;
-  const pct = (indexed / total * 100).toFixed(1);
-  const data = [
-    { name: 'Indexed', value: indexed },
-    { name: 'Not Indexed', value: notIndexed },
-  ];
-  const COLORS = ['#22c55e', '#ef4444'];
-
-  return (
-    <div className="relative flex items-center justify-center">
-      <ResponsiveContainer width={160} height={160}>
-        <PieChart>
-          <Pie data={data} dataKey="value" cx="50%" cy="50%" innerRadius={50} outerRadius={72}
-            paddingAngle={3} startAngle={90} endAngle={-270} strokeWidth={0}>
-            {data.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
-          </Pie>
-          <Tooltip formatter={v => (v ?? 0).toLocaleString()} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
-        </PieChart>
-      </ResponsiveContainer>
-      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-        <span className="text-2xl font-extrabold text-emerald-700">{pct}%</span>
-        <span className="text-[10px] text-slate-400 font-medium">indexed</span>
-      </div>
     </div>
   );
 }

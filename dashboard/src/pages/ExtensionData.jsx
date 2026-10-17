@@ -10,10 +10,10 @@ import {
   Clock, TrendingUp, AlertOctagon, ChevronDown, ChevronUp,
   MousePointer, Eye, Percent, Hash, ExternalLink, Search,
 } from 'lucide-react';
+import IndexDonut from '../components/IndexDonut';
 
 import { STATUS_COLORS, STATUS_LABELS, STATUS_HEX } from '../lib/statusConstants';
 
-const DONUT_COLORS = ['#22c55e', '#ef4444'];
 const BULK_PIE_COLORS = STATUS_HEX;
 
 const SEVERITY_COLORS = [
@@ -138,7 +138,7 @@ export default function ExtensionData() {
                 <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Index Coverage</div>
                 <div className="flex items-center gap-4">
                   <div className="w-24 h-24 flex-shrink-0">
-                    <IndexDonut indexed={parseNum(pages.indexed)} notIndexed={parseNum(pages.notIndexed)} />
+                    <IndexDonut indexed={parseNum(pages.indexed)} notIndexed={parseNum(pages.notIndexed)} size={96} innerRadius={28} outerRadius={42} />
                   </div>
                   <div className="space-y-2 flex-1">
                     <div className="flex items-center gap-2">
@@ -166,19 +166,19 @@ export default function ExtensionData() {
             )}
             {perf && (
               <>
-                <StatCard
+                <PerfStatCard
                   icon={MousePointer} iconBg="bg-blue-100" iconColor="text-blue-600"
                   borderColor="border-l-blue-500" label="Clicks" value={perf.clicks || '—'}
                 />
-                <StatCard
+                <PerfStatCard
                   icon={Eye} iconBg="bg-indigo-100" iconColor="text-indigo-600"
                   borderColor="border-l-indigo-500" label="Impressions" value={perf.impressions || '—'}
                 />
-                <StatCard
+                <PerfStatCard
                   icon={Percent} iconBg="bg-teal-100" iconColor="text-teal-600"
                   borderColor="border-l-teal-500" label="CTR" value={perf.ctr || '—'}
                 />
-                <StatCard
+                <PerfStatCard
                   icon={Hash} iconBg="bg-amber-100" iconColor="text-amber-600"
                   borderColor="border-l-amber-500" label="Avg Position" value={perf.position || '—'}
                 />
@@ -220,40 +220,8 @@ export default function ExtensionData() {
   );
 }
 
-/* ─── Index Coverage Donut ─── */
-function IndexDonut({ indexed, notIndexed }) {
-  const total = indexed + notIndexed;
-  if (total === 0) return <div className="w-full h-full flex items-center justify-center text-xs text-slate-400">No data</div>;
-  const pct = Math.round((indexed / total) * 100);
-  const data = [
-    { name: 'Indexed', value: indexed },
-    { name: 'Not Indexed', value: notIndexed },
-  ];
-
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <PieChart>
-        <Pie
-          data={data} dataKey="value" cx="50%" cy="50%"
-          innerRadius={28} outerRadius={42} strokeWidth={2} stroke="#fff"
-        >
-          {data.map((_, i) => <Cell key={i} fill={DONUT_COLORS[i]} />)}
-        </Pie>
-        <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle"
-          className="text-sm font-bold fill-slate-800">
-          {pct}%
-        </text>
-        <Tooltip
-          formatter={(val, name) => [(val ?? 0).toLocaleString(), name]}
-          contentStyle={{ borderRadius: 8, fontSize: 12, border: '1px solid #e2e8f0' }}
-        />
-      </PieChart>
-    </ResponsiveContainer>
-  );
-}
-
 /* ─── Stat Card (Performance) ─── */
-function StatCard({ icon: Icon, iconBg, iconColor, borderColor, label, value }) {
+function PerfStatCard({ icon: Icon, iconBg, iconColor, borderColor, label, value }) {
   return (
     <div className={`rounded-xl border border-slate-200 bg-white p-4 shadow-sm border-l-4 ${borderColor}`}>
       <div className="flex items-center gap-2 mb-2">
