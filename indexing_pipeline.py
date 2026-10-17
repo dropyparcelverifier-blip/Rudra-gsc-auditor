@@ -113,7 +113,17 @@ class C:
 
 
 def cprint(color: str, text: str, end: str = "\n"):
-    print(f"{color}{text}{C.RESET}", end=end, flush=True)
+    try:
+        print(f"{color}{text}{C.RESET}", end=end, flush=True)
+    except OSError:
+        pass
+
+
+def safe_print(*args, **kwargs):
+    try:
+        print(*args, **kwargs)
+    except OSError:
+        pass
 
 
 def progress_bar(current: int, total: int, width: int = 30) -> str:
@@ -718,12 +728,12 @@ def cmd_check(args):
         handle = url.split("/products/")[-1] if "/products/" in url else url[-60:]
         short = handle[:50]
 
-        print(f"  {C.DIM}[{acct['name']}]{C.RESET} {progress_bar(i+1, len(urls_to_check))} {short}", end="")
+        safe_print(f"  {C.DIM}[{acct['name']}]{C.RESET} {progress_bar(i+1, len(urls_to_check))} {short}", end="")
 
         result, err = inspect_url(svc, url, SITE_URL)
 
         if err == "RATE_LIMITED":
-            print(f" {C.RED}RATE LIMITED{C.RESET}")
+            safe_print(f" {C.RED}RATE LIMITED{C.RESET}")
             # Mark this account as exhausted
             acct["inspect_used"] = acct["inspect_limit"]
             pool.save()
@@ -736,12 +746,12 @@ def cmd_check(args):
             svc2, acct2 = pair2
             result, err = inspect_url(svc2, url, SITE_URL)
             if err:
-                print(f" {C.RED}{err}{C.RESET}")
+                safe_print(f" {C.RED}{err}{C.RESET}")
                 errors += 1
                 continue
             pool.record_use(acct2)
         elif err:
-            print(f" {C.RED} ERR{C.RESET}")
+            safe_print(f" {C.RED} ERR{C.RESET}")
             errors += 1
             continue
         else:
@@ -772,11 +782,11 @@ def cmd_check(args):
 
         # Color the coverage
         if parsed["is_indexed"]:
-            print(f" {C.GREEN}{coverage}{C.RESET}")
+            safe_print(f" {C.GREEN}{coverage}{C.RESET}")
         elif "unknown" in coverage.lower():
-            print(f" {C.RED}{coverage}{C.RESET}")
+            safe_print(f" {C.RED}{coverage}{C.RESET}")
         else:
-            print(f" {C.YELLOW}{coverage}{C.RESET}")
+            safe_print(f" {C.YELLOW}{coverage}{C.RESET}")
 
         # Save progress periodically
         if checked % SAVE_EVERY == 0:
@@ -916,12 +926,12 @@ def cmd_submit(args):
         handle = url.split("/products/")[-1] if "/products/" in url else url[-60:]
         short = handle[:50]
 
-        print(f"  {C.DIM}[{acct['name']}]{C.RESET} {progress_bar(i+1, len(candidates))} {short}", end="")
+        safe_print(f"  {C.DIM}[{acct['name']}]{C.RESET} {progress_bar(i+1, len(candidates))} {short}", end="")
 
         ok, msg = submit_url_for_indexing(svc, url)
 
         if msg == "RATE_LIMITED":
-            print(f" {C.RED}RATE LIMITED{C.RESET}")
+            safe_print(f" {C.RED}RATE LIMITED{C.RESET}")
             acct["index_used"] = acct["index_limit"]
             pool.save()
             pair2 = pool.get_next()
@@ -936,11 +946,11 @@ def cmd_submit(args):
             pool.record_use(acct)
 
         if ok:
-            print(f" {C.GREEN}OK{C.RESET}")
+            safe_print(f" {C.GREEN}OK{C.RESET}")
             submitted += 1
             index_status[url]["submitted_at"] = datetime.now().isoformat()
         else:
-            print(f" {C.RED}{msg}{C.RESET}")
+            safe_print(f" {C.RED}{msg}{C.RESET}")
             errors += 1
 
         # Save periodically
@@ -1151,7 +1161,7 @@ def cmd_monitor(args):
     cprint(C.WHITE, f"    Inspected so far:        {total:>10} ({scan_pct:.1f}%)")
     cprint(C.GREEN, f"    Indexed:                 {indexed:>10}")
     cprint(C.RED,   f"    Not indexed:             {not_indexed:>10}")
-    print(f"    {progress_bar(total, total_urls_in_source, 40)}")
+    safe_print(f"    {progress_bar(total, total_urls_in_source, 40)}")
 
     # Days to complete
     quota_data = load_account_quotas()
@@ -1544,8 +1554,8 @@ def cmd_accounts(args):
     for f in discover_credential_files():
         registered = any(a["credentials_file"] == f for a in accounts)
         status = f"{C.GREEN}registered{C.RESET}" if registered else f"{C.YELLOW}unregistered{C.RESET}"
-        print(f"    {f} — {status}")
-    print()
+        safe_print(f"    {f} — {status}")
+    safe_print()
 
 
 # ---------------------------------------------------------------------------
