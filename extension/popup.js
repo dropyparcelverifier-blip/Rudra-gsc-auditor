@@ -317,7 +317,7 @@ $$('.data-btn[data-msg]').forEach(btn => {
 $('#btnFetchAll').addEventListener('click', async () => {
   const btn = $('#btnFetchAll');
   btn.disabled = true;
-  btn.textContent = 'Fetching...';
+  btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px"></span> Fetching...';
   $$('.data-btn').forEach(b => b.disabled = true);
   $('#fetchAllProgress').style.display = '';
   $('#fetchAllLabel').textContent = 'Starting...';
@@ -378,7 +378,7 @@ $('#btnFetchAll').addEventListener('click', async () => {
   }
 
   btn.disabled = false;
-  btn.textContent = 'Fetch All';
+  btn.innerHTML = '<span class="fetch-all-icon">&#9889;</span> Fetch All Reports';
   $$('.data-btn').forEach(b => b.disabled = false);
   $('#fetchAllProgress').style.display = 'none';
 });

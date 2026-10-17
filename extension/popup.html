@@ -16,11 +16,9 @@
         <div class="header-sub">Bulk indexing & search console data</div>
       </div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <div id="statusBadge" class="badge badge-idle">
-        <span class="dot"></span>
-        <span id="statusText">Ready</span>
-      </div>
+    <div id="statusBadge" class="badge badge-idle">
+      <span class="dot"></span>
+      <span id="statusText">Ready</span>
     </div>
   </header>
 
@@ -28,6 +26,7 @@
   <div class="tabs">
     <button class="tab active" data-tab="queue">Bulk Indexing</button>
     <button class="tab" data-tab="data">GSC Data</button>
+    <button class="tab" data-tab="settings">Settings</button>
   </div>
 
   <!-- Tab: Bulk Indexing Queue -->
@@ -76,7 +75,7 @@
         <div class="progress-fill" id="progressFill"></div>
       </div>
       <div class="progress-text">
-        <span id="progressLabel">0 of 0 URLs finished · 0 still in queue</span>
+        <span id="progressLabel">0 of 0 URLs finished &middot; 0 still in queue</span>
         <span id="progressPct">0%</span>
       </div>
       <div id="currentUrl" class="current-url" style="display:none">
@@ -116,31 +115,18 @@
 
   <!-- Tab: GSC Data -->
   <div id="tab-data" class="tab-content">
-    <section class="card">
-      <div class="section-header">
-        <span class="dot-blue"></span>
-        <h2>FETCH GSC DATA</h2>
-        <button id="btnFetchAll" class="btn btn-primary btn-sm" style="margin-left:auto">Fetch All</button>
+    <!-- Fetch All Hero -->
+    <section class="card fetch-hero">
+      <div class="fetch-hero-inner">
+        <div class="fetch-hero-text">
+          <h2>Fetch GSC Reports</h2>
+          <p>Scrape live data from Google Search Console and sync to your dashboard automatically.</p>
+        </div>
+        <button id="btnFetchAll" class="btn btn-fetch-all">
+          <span class="fetch-all-icon">&#9889;</span> Fetch All Reports
+        </button>
       </div>
-      <p class="hint" style="margin-bottom:10px">Scrape live data from GSC, auto-sends to dashboard.</p>
-      <div class="settings-row">
-        <label class="settings-label">GSC Property (URL-prefix)</label>
-        <input type="text" id="propertyUrl" class="settings-input" value="https://rudraretails.com/" placeholder="https://yoursite.com/">
-        <button id="btnSaveProperty" class="btn btn-outline btn-sm">Save</button>
-      </div>
-      <div class="settings-row">
-        <label class="settings-label">Dashboard API URL (Flask, port 5001)</label>
-        <input type="text" id="dashboardUrl" class="settings-input" value="http://localhost:5001" placeholder="http://localhost:5001">
-        <button id="btnSaveUrl" class="btn btn-outline btn-sm">Save</button>
-      </div>
-      <p class="hint">&#128260; Settings sync across all Chrome instances signed into the same Google account.</p>
-      <div id="syncPendingBanner" class="sync-banner" style="display:none">
-        <span>&#9888; Dashboard sync pending — results not yet saved</span>
-        <button id="btnRetrySync" class="btn btn-outline btn-sm">Retry Sync</button>
-      </div>
-
-      <!-- Fetch All Progress -->
-      <div id="fetchAllProgress" style="display:none;margin-bottom:10px">
+      <div id="fetchAllProgress" class="fetch-progress" style="display:none">
         <div class="progress-bar">
           <div class="progress-fill" id="fetchAllFill"></div>
         </div>
@@ -149,52 +135,73 @@
           <span id="fetchAllPct">0%</span>
         </div>
       </div>
+    </section>
 
+    <!-- Data Grid -->
+    <section class="card" style="padding:10px">
       <div class="data-grid">
         <button class="data-btn" id="btnScrapePages" data-msg="SCRAPE_PAGES">
-          <span class="data-icon">&#128196;</span>
-          <span class="data-title">Pages</span>
-          <span class="data-desc">Indexed / not indexed</span>
+          <div class="data-btn-icon" style="background:#ecfdf5;color:#16a34a">&#128196;</div>
+          <div class="data-btn-text">
+            <span class="data-title">Pages</span>
+            <span class="data-desc">Indexed / not indexed</span>
+          </div>
         </button>
         <button class="data-btn" id="btnScrapePerf" data-msg="SCRAPE_PERFORMANCE">
-          <span class="data-icon">&#128200;</span>
-          <span class="data-title">Performance</span>
-          <span class="data-desc">Clicks, CTR, position</span>
+          <div class="data-btn-icon" style="background:#eff6ff;color:#2563eb">&#128200;</div>
+          <div class="data-btn-text">
+            <span class="data-title">Performance</span>
+            <span class="data-desc">Clicks, CTR, position</span>
+          </div>
         </button>
         <button class="data-btn" id="btnScrapeEnhancements" data-msg="SCRAPE_ENHANCEMENTS">
-          <span class="data-icon">&#11088;</span>
-          <span class="data-title">Enhancements</span>
-          <span class="data-desc">Rich result types</span>
+          <div class="data-btn-icon" style="background:#fefce8;color:#ca8a04">&#11088;</div>
+          <div class="data-btn-text">
+            <span class="data-title">Enhancements</span>
+            <span class="data-desc">Rich result types</span>
+          </div>
         </button>
         <button class="data-btn" id="btnScrapeMerchant" data-msg="SCRAPE_MERCHANT">
-          <span class="data-icon">&#128722;</span>
-          <span class="data-title">Merchant</span>
-          <span class="data-desc">Listings & issues</span>
+          <div class="data-btn-icon" style="background:#fff7ed;color:#ea580c">&#128722;</div>
+          <div class="data-btn-text">
+            <span class="data-title">Merchant</span>
+            <span class="data-desc">Listings & issues</span>
+          </div>
         </button>
         <button class="data-btn" id="btnScrapeProduct" data-msg="SCRAPE_PRODUCT_SNIPPETS">
-          <span class="data-icon">&#128230;</span>
-          <span class="data-title">Products</span>
-          <span class="data-desc">Structured data</span>
+          <div class="data-btn-icon" style="background:#f5f3ff;color:#7c3aed">&#128230;</div>
+          <div class="data-btn-text">
+            <span class="data-title">Products</span>
+            <span class="data-desc">Structured data</span>
+          </div>
         </button>
         <button class="data-btn" id="btnScrapeReview" data-msg="SCRAPE_REVIEW_SNIPPETS">
-          <span class="data-icon">&#128172;</span>
-          <span class="data-title">Reviews</span>
-          <span class="data-desc">Review snippets</span>
+          <div class="data-btn-icon" style="background:#fdf2f8;color:#db2777">&#128172;</div>
+          <div class="data-btn-text">
+            <span class="data-title">Reviews</span>
+            <span class="data-desc">Review snippets</span>
+          </div>
         </button>
         <button class="data-btn" id="btnScrapeVideos" data-msg="SCRAPE_VIDEOS">
-          <span class="data-icon">&#127909;</span>
-          <span class="data-title">Videos</span>
-          <span class="data-desc">Video indexing</span>
+          <div class="data-btn-icon" style="background:#fef2f2;color:#dc2626">&#127909;</div>
+          <div class="data-btn-text">
+            <span class="data-title">Videos</span>
+            <span class="data-desc">Video indexing</span>
+          </div>
         </button>
         <button class="data-btn" id="btnScrapeLinks" data-msg="SCRAPE_LINKS">
-          <span class="data-icon">&#128279;</span>
-          <span class="data-title">Links</span>
-          <span class="data-desc">External & internal</span>
+          <div class="data-btn-icon" style="background:#ecfeff;color:#0891b2">&#128279;</div>
+          <div class="data-btn-text">
+            <span class="data-title">Links</span>
+            <span class="data-desc">External & internal</span>
+          </div>
         </button>
         <button class="data-btn" id="btnScrapeSitemaps" data-msg="SCRAPE_SITEMAPS">
-          <span class="data-icon">&#128506;</span>
-          <span class="data-title">Sitemaps</span>
-          <span class="data-desc">Status & submitted</span>
+          <div class="data-btn-icon" style="background:#f0fdf4;color:#16a34a">&#128506;</div>
+          <div class="data-btn-text">
+            <span class="data-title">Sitemaps</span>
+            <span class="data-desc">Status & submitted</span>
+          </div>
         </button>
       </div>
     </section>
@@ -204,9 +211,66 @@
       <div class="section-header">
         <span class="dot-indigo"></span>
         <h2 id="dataResultsTitle">RESULTS</h2>
-        <button id="btnExportData" class="btn btn-outline btn-sm">Export JSON</button>
+        <button id="btnExportData" class="btn btn-outline btn-sm" style="margin-left:auto">Export JSON</button>
       </div>
       <div id="dataResultsContent" class="data-results-content"></div>
+    </section>
+  </div>
+
+  <!-- Tab: Settings -->
+  <div id="tab-settings" class="tab-content">
+    <section class="card">
+      <div class="section-header">
+        <span class="dot-blue"></span>
+        <h2>CONNECTION</h2>
+      </div>
+      <div class="settings-group">
+        <label class="settings-group-label">GSC Property (URL-prefix)</label>
+        <div class="settings-input-row">
+          <input type="text" id="propertyUrl" class="settings-input" value="https://rudraretails.com/" placeholder="https://yoursite.com/">
+          <button id="btnSaveProperty" class="btn btn-outline btn-sm">Save</button>
+        </div>
+      </div>
+      <div class="settings-group">
+        <label class="settings-group-label">Dashboard API URL</label>
+        <div class="settings-input-row">
+          <input type="text" id="dashboardUrl" class="settings-input" value="http://localhost:5001" placeholder="http://localhost:5001">
+          <button id="btnSaveUrl" class="btn btn-outline btn-sm">Save</button>
+        </div>
+        <p class="hint" style="margin-top:4px">Flask backend, default port 5001</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-header">
+        <span class="dot-blue"></span>
+        <h2>SYNC STATUS</h2>
+      </div>
+      <div class="settings-info-row">
+        <span class="settings-info-icon">&#128260;</span>
+        <div>
+          <span class="settings-info-text">Settings sync across Chrome instances</span>
+          <span class="settings-info-sub">Linked to your Google account</span>
+        </div>
+      </div>
+      <div id="syncPendingBanner" class="sync-banner" style="display:none">
+        <span>&#9888; Dashboard sync pending — results not yet saved</span>
+        <button id="btnRetrySync" class="btn btn-outline btn-sm">Retry Sync</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-header">
+        <span class="dot-blue"></span>
+        <h2>ABOUT</h2>
+      </div>
+      <div class="settings-info-row" style="border:none;padding-bottom:0">
+        <span class="settings-info-icon">&#128736;</span>
+        <div>
+          <span class="settings-info-text">Rudra GSC Auditor v1.0</span>
+          <span class="settings-info-sub">Automated SEO pipeline for Rudra Retail</span>
+        </div>
+      </div>
     </section>
   </div>
 
