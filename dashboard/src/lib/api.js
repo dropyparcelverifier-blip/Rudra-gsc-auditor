@@ -1,8 +1,9 @@
 const BASE = '/api';
 
 async function fetchJSON(url, opts = {}) {
-  const headers = opts.body ? { 'Content-Type': 'application/json', ...opts.headers } : { ...opts.headers };
-  const res = await fetch(BASE + url, { ...opts, headers });
+  const { signal, ...rest } = opts;
+  const headers = rest.body ? { 'Content-Type': 'application/json', ...rest.headers } : { ...rest.headers };
+  const res = await fetch(BASE + url, { ...rest, headers, signal });
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     throw new Error(text || `HTTP ${res.status}`);
