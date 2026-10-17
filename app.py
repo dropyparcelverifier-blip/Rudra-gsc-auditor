@@ -795,10 +795,12 @@ def gsc_analytics(url: str) -> Dict[str, Any]:
 # SITEMAP GAP (one-time per session)
 # =============================================
 _sitemap_data = None
+_sitemap_fetched_at = 0
+_SITEMAP_TTL = 300  # 5 minutes
 
 def get_sitemap_gap():
-    global _sitemap_data
-    if _sitemap_data is not None:
+    global _sitemap_data, _sitemap_fetched_at
+    if _sitemap_data is not None and (time.time() - _sitemap_fetched_at) < _SITEMAP_TTL:
         return _sitemap_data
     if not _wmt_v3:
         return None
@@ -816,10 +818,12 @@ def get_sitemap_gap():
                            "gap": submitted - indexed, "last_submitted": sm.get("lastSubmitted", ""),
                            "last_downloaded": sm.get("lastDownloaded", "")})
         _sitemap_data = result
+        _sitemap_fetched_at = time.time()
         return result
     except Exception as e:
         logger.debug(f"Error fetching sitemap gap: {e}")
         _sitemap_data = []
+        _sitemap_fetched_at = time.time()
         return []
 
 
