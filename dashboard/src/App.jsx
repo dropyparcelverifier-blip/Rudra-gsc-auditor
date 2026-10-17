@@ -3,7 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import { AlertTriangle, X } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import PipelineNotification from './components/PipelineNotification';
-import { useDashboard } from './hooks/useDashboard';
+import { useLiveData } from './hooks/useDashboard';
 import Overview from './pages/Overview';
 import Indexing from './pages/Indexing';
 import Snippets from './pages/Snippets';
@@ -16,7 +16,7 @@ import BulkTool from './pages/BulkTool';
 import ExtensionData from './pages/ExtensionData';
 
 export default function App() {
-  const { data, loading, error, refresh, lastFetched } = useDashboard();
+  const { data, loading, error, refresh, lastFetched } = useLiveData();
   const [dismissed, setDismissed] = useState(false);
 
   return (

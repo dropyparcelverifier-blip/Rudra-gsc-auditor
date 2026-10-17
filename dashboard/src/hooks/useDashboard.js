@@ -32,7 +32,3 @@ export function useLiveData() {
 
   return { data, loading, error, refresh, lastFetched };
 }
-
-export function useDashboard() {
-  return useLiveData();
-}
