@@ -121,10 +121,14 @@ def cprint(color: str, text: str, end: str = "\n"):
 
 def safe_print(*args, **kwargs):
     try:
+        kwargs.setdefault("flush", True)
         print(*args, **kwargs)
     except OSError:
         pass
 
+
+def _ts():
+    return datetime.now().strftime("%H:%M:%S")
 
 def progress_bar(current: int, total: int, width: int = 30) -> str:
     if total == 0:
@@ -743,16 +747,14 @@ def cmd_check(args):
         handle = url.split("/products/")[-1] if "/products/" in url else url[-60:]
         short = handle[:50]
 
-        safe_print(f"  {C.DIM}[{acct['name']}]{C.RESET} {progress_bar(i+1, len(urls_to_check))} {short}", end="")
+        prefix = f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {progress_bar(i+1, len(urls_to_check))} {short}"
 
         result, err = inspect_url(svc, url, SITE_URL)
 
         if err == "RATE_LIMITED":
-            safe_print(f" {C.RED}RATE LIMITED{C.RESET}")
-            # Mark this account as exhausted
+            safe_print(f"{prefix} {C.RED}RATE LIMITED{C.RESET}")
             acct["inspect_used"] = acct["inspect_limit"]
             pool.save()
-            # Try next account for this URL
             pair2 = pool.get_next()
             if pair2 is None:
                 cprint(C.RED, "\n  All accounts exhausted after rate limit.")
@@ -763,16 +765,16 @@ def cmd_check(args):
             if err == "RATE_LIMITED":
                 acct2["inspect_used"] = acct2["inspect_limit"]
                 pool.save()
-                safe_print(f" {C.RED}{err}{C.RESET}")
+                safe_print(f"{prefix} {C.RED}RATE LIMITED (2nd){C.RESET}")
                 errors += 1
                 continue
             elif err:
-                safe_print(f" {C.RED}{err}{C.RESET}")
+                safe_print(f"{prefix} {C.RED}ERR: {err[:60]}{C.RESET}")
                 errors += 1
                 continue
             pool.record_use(acct2)
         elif err:
-            safe_print(f" {C.RED} ERR{C.RESET}")
+            safe_print(f"{prefix} {C.RED}ERR: {err[:60]}{C.RESET}")
             errors += 1
             continue
         else:
@@ -801,21 +803,20 @@ def cmd_check(args):
         coverage = parsed["coverage"]
         counts[coverage] = counts.get(coverage, 0) + 1
 
-        # Color the coverage
         if parsed["is_indexed"]:
-            safe_print(f" {C.GREEN}{coverage}{C.RESET}")
+            safe_print(f"{prefix} {C.GREEN}{coverage}{C.RESET}")
         elif "unknown" in coverage.lower():
-            safe_print(f" {C.RED}{coverage}{C.RESET}")
+            safe_print(f"{prefix} {C.RED}{coverage}{C.RESET}")
         else:
-            safe_print(f" {C.YELLOW}{coverage}{C.RESET}")
+            safe_print(f"{prefix} {C.YELLOW}{coverage}{C.RESET}")
 
-        # Save progress periodically
         if checked % SAVE_EVERY == 0:
             save_json(INDEX_STATUS_FILE, index_status)
             pool.save()
             update_pipeline_status("inspect", "running",
                                    inspected=checked, inspect_total=len(urls_to_check),
                                    inspect_errors=errors)
+            cprint(C.DIM, f"    [{_ts()}] Saved checkpoint — {checked}/{len(urls_to_check)} inspected, {errors} errors")
 
         time.sleep(API_DELAY)
 
@@ -947,12 +948,12 @@ def cmd_submit(args):
         handle = url.split("/products/")[-1] if "/products/" in url else url[-60:]
         short = handle[:50]
 
-        safe_print(f"  {C.DIM}[{acct['name']}]{C.RESET} {progress_bar(i+1, len(candidates))} {short}", end="")
+        prefix = f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {progress_bar(i+1, len(candidates))} {short}"
 
         ok, msg = submit_url_for_indexing(svc, url)
 
         if msg == "RATE_LIMITED":
-            safe_print(f" {C.RED}RATE LIMITED{C.RESET}")
+            safe_print(f"{prefix} {C.RED}RATE LIMITED{C.RESET}")
             acct["index_used"] = acct["index_limit"]
             pool.save()
             pair2 = pool.get_next()
@@ -970,11 +971,11 @@ def cmd_submit(args):
             pool.record_use(acct)
 
         if ok:
-            safe_print(f" {C.GREEN}OK{C.RESET}")
+            safe_print(f"{prefix} {C.GREEN}SUBMITTED{C.RESET}")
             submitted += 1
             index_status[url]["submitted_at"] = datetime.now(PT_OFFSET).isoformat()
         else:
-            safe_print(f" {C.RED}{msg}{C.RESET}")
+            safe_print(f"{prefix} {C.RED}{msg[:60]}{C.RESET}")
             errors += 1
 
         # Save periodically
@@ -1011,7 +1012,7 @@ def cmd_daily(args):
 
 def _cmd_daily_inner(args):
     cprint(C.BOLD + C.YELLOW, "\n" + "=" * 60)
-    cprint(C.BOLD + C.YELLOW, "  DAILY PIPELINE RUN (AUTOMATIC)")
+    cprint(C.BOLD + C.YELLOW, f"  DAILY PIPELINE RUN (AUTOMATIC) — Started {_ts()}")
     cprint(C.BOLD + C.YELLOW, "=" * 60)
     cprint(C.WHITE, f"  Date (PT): {today_pt()}")
     cprint(C.WHITE, f"  Site:      {SITE_URL}")
@@ -1020,12 +1021,13 @@ def _cmd_daily_inner(args):
     num_accounts = len(discover_credential_files())
     cprint(C.CYAN, f"  Accounts:  {num_accounts} ({num_accounts * INSPECT_DAILY_LIMIT} inspect/day, {num_accounts * INDEX_DAILY_LIMIT} submit/day)\n")
 
+    _run_start = time.time()
     started_at = datetime.now(timezone.utc).isoformat()
     update_pipeline_status("starting", "running", started_at=started_at,
                            accounts=num_accounts, errors=[])
 
     # Step 0: Classify URLs
-    cprint(C.BOLD, "STEP 0/4: Smart URL Classification")
+    cprint(C.BOLD, f"STEP 0/4: Smart URL Classification [{_ts()}]")
     update_pipeline_status("classify", "running", started_at=started_at, step="0/4")
     source_file = Path(args.source) if hasattr(args, "source") and args.source else DEFAULT_URL_SOURCE
     all_urls = []
@@ -1076,7 +1078,7 @@ def _cmd_daily_inner(args):
         cprint(C.YELLOW, "  Skipping classification, proceeding with existing data...")
 
     # Step 1: Check (uses all available inspection quota)
-    cprint(C.BOLD, "\nSTEP 1/4: URL Inspection (smart filtered)")
+    cprint(C.BOLD, f"\nSTEP 1/4: URL Inspection (smart filtered) [{_ts()}] +{int(time.time() - _run_start)}s")
     update_pipeline_status("inspect", "running", started_at=started_at, step="1/4")
     check_args = argparse.Namespace(
         source=args.source if hasattr(args, "source") and args.source else None,
@@ -1087,7 +1089,7 @@ def _cmd_daily_inner(args):
         index_status = load_json(INDEX_STATUS_FILE, {})
 
     # Step 2: Submit non-indexed URLs (smart filtered — only eligible ones)
-    cprint(C.BOLD, "\nSTEP 2/4: Indexing Submission (smart filtered)")
+    cprint(C.BOLD, f"\nSTEP 2/4: Indexing Submission (smart filtered) [{_ts()}] +{int(time.time() - _run_start)}s")
     update_pipeline_status("submit", "running", started_at=started_at, step="2/4")
     quota_data = load_account_quotas()
     total_index_limit = sum(
@@ -1101,7 +1103,7 @@ def _cmd_daily_inner(args):
     cmd_submit(submit_args)
 
     # Step 3: Re-classify after inspection (update counts with fresh data)
-    cprint(C.BOLD, "\nSTEP 3/4: Post-Inspection Classification Update")
+    cprint(C.BOLD, f"\nSTEP 3/4: Post-Inspection Classification Update [{_ts()}] +{int(time.time() - _run_start)}s")
     update_pipeline_status("reclassify", "running", started_at=started_at, step="3/4")
     index_status = load_json(INDEX_STATUS_FILE, {})
     if source_file.exists():
@@ -1126,7 +1128,7 @@ def _cmd_daily_inner(args):
         })
 
     # Step 4: Snapshot
-    cprint(C.BOLD, "\nSTEP 4/4: Daily Snapshot")
+    cprint(C.BOLD, f"\nSTEP 4/4: Daily Snapshot [{_ts()}] +{int(time.time() - _run_start)}s")
     update_pipeline_status("snapshot", "running", started_at=started_at, step="4/4")
     take_daily_snapshot(index_status)
 
@@ -1158,7 +1160,9 @@ def _cmd_daily_inner(args):
                            not_indexed=total_tracked - total_indexed,
                            changes_today=len(today_changes) if today_changes else 0)
 
-    cprint(C.BOLD + C.GREEN, "\n  Daily pipeline complete!\n")
+    elapsed = int(time.time() - _run_start)
+    m, s = divmod(elapsed, 60)
+    cprint(C.BOLD + C.GREEN, f"\n  Daily pipeline complete! [{_ts()}] Total: {m}m {s}s\n")
 
 
 def cmd_monitor(args):
