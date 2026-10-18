@@ -562,7 +562,7 @@ def inspect_url(svc, url: str, site_url: str) -> Tuple[Optional[Dict], Optional[
                 return None, "RATE_LIMITED"
             if ("500" in err or "503" in err) and attempt < MAX_RETRIES - 1:
                 wait = 5 * (attempt + 1)
-                cprint(C.DIM, f"    Retry {attempt+1}/{MAX_RETRIES} in {wait}s ...", end="\r")
+                safe_print(f"    {C.DIM}[{_ts()}] Retry {attempt+1}/{MAX_RETRIES} in {wait}s ...{C.RESET}")
                 time.sleep(wait)
                 continue
             return None, err
