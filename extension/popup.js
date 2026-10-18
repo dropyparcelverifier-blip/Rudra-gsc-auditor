@@ -24,6 +24,14 @@ $$('.tab').forEach(tab => {
   });
 });
 
+// ─── Open Dashboard ───
+$('#btnOpenDashboard').addEventListener('click', async () => {
+  const settings = await sendMsg({ type: 'GET_SETTINGS' });
+  const base = (settings?.dashboardUrl || 'http://localhost:5001').replace(/\/+$/, '');
+  const dashUrl = base.replace(':5001', ':3001');
+  chrome.tabs.create({ url: dashUrl });
+});
+
 // ─── Queue UI ───
 function updateUI(queue) {
   if (!queue) return;

@@ -19,6 +19,10 @@ body { width: 580px; min-height: 400px; font-family: -apple-system, BlinkMacSyst
 
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
+/* ─── Dashboard Button ─── */
+.btn-dashboard { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; color: #fff; background: rgba(255,255,255,0.15); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2); cursor: pointer; transition: all 0.2s; }
+.btn-dashboard:hover { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.35); }
+
 /* ─── Tabs ─── */
 .tabs { display: flex; background: #fff; border-bottom: 1px solid #e2e8f0; padding: 0 4px; }
 .tab { flex: 1; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #64748b; background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
