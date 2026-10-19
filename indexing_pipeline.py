@@ -778,6 +778,8 @@ def cmd_check(args):
     # Shared state with locks
     _print_lock = Lock()
     _status_lock = Lock()
+    _save_lock = Lock()
+    _worker_save_interval = 10  # save quotas every N successful requests per worker
 
     def _inspect_one_url(svc, acct, url, _print_lock):
         """Try to inspect a URL, retrying on 429 with exponential backoff."""
@@ -807,6 +809,7 @@ def cmd_check(args):
         """Worker: inspect a batch of URLs using one account."""
         local_results = []
         account_dead = False
+        worker_count = 0
         for seq, url in url_batch:
             if account_dead:
                 break
@@ -828,6 +831,7 @@ def cmd_check(args):
 
             with _status_lock:
                 acct["inspect_used"] += 1
+            worker_count += 1
             parsed = parse_inspection_result(result)
             coverage = parsed["coverage"]
             if parsed["is_indexed"]:
@@ -840,7 +844,13 @@ def cmd_check(args):
                 safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {color}{coverage}{C.RESET}")
             local_results.append((seq, url, parsed, None))
 
+            if worker_count % _worker_save_interval == 0:
+                with _save_lock:
+                    pool.save()
+
             time.sleep(PARALLEL_DELAY)
+        with _save_lock:
+            pool.save()
         return local_results
 
     # Launch parallel workers
@@ -1063,6 +1073,7 @@ def cmd_submit(args):
 
     _print_lock = Lock()
     _status_lock = Lock()
+    _save_lock = Lock()
 
     def _submit_one_url(svc, acct, url, _print_lock):
         """Try to submit a URL, retrying on 429 with exponential backoff."""
@@ -1091,6 +1102,7 @@ def cmd_submit(args):
     def _submit_worker(svc, acct, url_batch):
         local_results = []
         account_dead = False
+        worker_count = 0
         for seq, url in url_batch:
             if account_dead:
                 break
@@ -1106,6 +1118,7 @@ def cmd_submit(args):
             elif ok:
                 with _status_lock:
                     acct["index_used"] += 1
+                worker_count += 1
                 with _print_lock:
                     safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.GREEN}SUBMITTED{C.RESET}")
                 local_results.append((seq, url, True, "OK"))
@@ -1114,7 +1127,13 @@ def cmd_submit(args):
                     safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.RED}{msg[:60]}{C.RESET}")
                 local_results.append((seq, url, False, msg))
 
+            if worker_count % 5 == 0 and worker_count > 0:
+                with _save_lock:
+                    pool.save()
+
             time.sleep(PARALLEL_DELAY)
+        with _save_lock:
+            pool.save()
         return local_results
 
     all_submit_results = []
