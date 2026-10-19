@@ -65,7 +65,7 @@ SAVE_EVERY = 25
 API_DELAY = 0.3
 PARALLEL_DELAY = 3.0  # per-worker delay when running parallel (avoids burst rate limits)
 MAX_RETRIES = 3
-RATE_LIMIT_BACKOFF = [30, 60, 120]  # seconds to wait on 429 before retrying
+RATE_LIMIT_MAX_WAIT = 600  # max total seconds to spend retrying 429s before giving up on account
 
 # URL types that should NOT be inspected/indexed (waste of quota)
 SKIP_PATTERNS = [
@@ -779,62 +779,66 @@ def cmd_check(args):
     _print_lock = Lock()
     _status_lock = Lock()
 
+    def _inspect_one_url(svc, acct, url, _print_lock):
+        """Try to inspect a URL, retrying on 429 with exponential backoff."""
+        handle = url.split("/products/")[-1] if "/products/" in url else url[-60:]
+        short = handle[:50]
+        total_waited = 0
+        backoff = 10
+
+        while True:
+            result, err = inspect_url(svc, url, SITE_URL)
+
+            if err != "RATE_LIMITED":
+                return result, err, short
+
+            total_waited += backoff
+            if total_waited > RATE_LIMIT_MAX_WAIT:
+                with _print_lock:
+                    safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.RED}429 — gave up after {total_waited}s total backoff{C.RESET}")
+                return None, "RATE_LIMITED_EXHAUSTED", short
+
+            with _print_lock:
+                safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.YELLOW}429 — waiting {backoff}s (total {total_waited}s){C.RESET}")
+            time.sleep(backoff)
+            backoff = min(backoff * 2, 120)
+
     def _inspect_worker(worker_idx, svc, acct, url_batch):
         """Worker: inspect a batch of URLs using one account."""
         local_results = []
-        consecutive_429 = 0
+        account_dead = False
         for seq, url in url_batch:
-            handle = url.split("/products/")[-1] if "/products/" in url else url[-60:]
-            short = handle[:50]
+            if account_dead:
+                break
 
-            result, err = inspect_url(svc, url, SITE_URL)
+            result, err, short = _inspect_one_url(svc, acct, url, _print_lock)
 
-            if err == "RATE_LIMITED":
-                consecutive_429 += 1
-                if consecutive_429 > len(RATE_LIMIT_BACKOFF):
-                    with _print_lock:
-                        safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.RED}RATE LIMITED x{consecutive_429} — stopping account{C.RESET}")
-                    local_results.append((seq, url, None, "RATE_LIMITED"))
-                    break
-                wait = RATE_LIMIT_BACKOFF[consecutive_429 - 1]
+            if err == "RATE_LIMITED_EXHAUSTED":
+                local_results.append((seq, url, None, "RATE_LIMITED"))
+                account_dead = True
                 with _print_lock:
-                    safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.YELLOW}429 — backoff {wait}s (attempt {consecutive_429}){C.RESET}")
-                time.sleep(wait)
-                result, err = inspect_url(svc, url, SITE_URL)
-                if err == "RATE_LIMITED":
-                    with _print_lock:
-                        safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.RED}RATE LIMITED after backoff — stopping account{C.RESET}")
-                    local_results.append((seq, url, None, "RATE_LIMITED"))
-                    break
-                elif err:
-                    with _print_lock:
-                        safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.RED}ERR: {err[:60]}{C.RESET}")
-                    local_results.append((seq, url, None, err))
-                    time.sleep(PARALLEL_DELAY)
-                    continue
+                    safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {C.RED}Account quota exhausted — stopping worker{C.RESET}")
+                continue
             elif err:
                 with _print_lock:
                     safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.RED}ERR: {err[:60]}{C.RESET}")
                 local_results.append((seq, url, None, err))
-                consecutive_429 = 0
                 time.sleep(PARALLEL_DELAY)
                 continue
 
-            if result:
-                consecutive_429 = 0
-                with _status_lock:
-                    acct["inspect_used"] += 1
-                parsed = parse_inspection_result(result)
-                coverage = parsed["coverage"]
-                if parsed["is_indexed"]:
-                    color = C.GREEN
-                elif "unknown" in coverage.lower():
-                    color = C.RED
-                else:
-                    color = C.YELLOW
-                with _print_lock:
-                    safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {color}{coverage}{C.RESET}")
-                local_results.append((seq, url, parsed, None))
+            with _status_lock:
+                acct["inspect_used"] += 1
+            parsed = parse_inspection_result(result)
+            coverage = parsed["coverage"]
+            if parsed["is_indexed"]:
+                color = C.GREEN
+            elif "unknown" in coverage.lower():
+                color = C.RED
+            else:
+                color = C.YELLOW
+            with _print_lock:
+                safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {color}{coverage}{C.RESET}")
+            local_results.append((seq, url, parsed, None))
 
             time.sleep(PARALLEL_DELAY)
         return local_results
@@ -1060,42 +1064,52 @@ def cmd_submit(args):
     _print_lock = Lock()
     _status_lock = Lock()
 
-    def _submit_worker(svc, acct, url_batch):
-        local_results = []
-        consecutive_429 = 0
-        for seq, url in url_batch:
-            handle = url.split("/products/")[-1] if "/products/" in url else url[-60:]
-            short = handle[:50]
+    def _submit_one_url(svc, acct, url, _print_lock):
+        """Try to submit a URL, retrying on 429 with exponential backoff."""
+        handle = url.split("/products/")[-1] if "/products/" in url else url[-60:]
+        short = handle[:50]
+        total_waited = 0
+        backoff = 10
 
+        while True:
             ok, msg = submit_url_for_indexing(svc, url)
 
-            if msg == "RATE_LIMITED":
-                consecutive_429 += 1
-                if consecutive_429 > len(RATE_LIMIT_BACKOFF):
-                    with _print_lock:
-                        safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.RED}RATE LIMITED x{consecutive_429} — stopping{C.RESET}")
-                    local_results.append((seq, url, False, "RATE_LIMITED"))
-                    break
-                wait = RATE_LIMIT_BACKOFF[consecutive_429 - 1]
-                with _print_lock:
-                    safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.YELLOW}429 — backoff {wait}s{C.RESET}")
-                time.sleep(wait)
-                ok, msg = submit_url_for_indexing(svc, url)
-                if msg == "RATE_LIMITED":
-                    with _print_lock:
-                        safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.RED}RATE LIMITED after backoff — stopping{C.RESET}")
-                    local_results.append((seq, url, False, "RATE_LIMITED"))
-                    break
+            if msg != "RATE_LIMITED":
+                return ok, msg, short
 
-            if ok:
-                consecutive_429 = 0
+            total_waited += backoff
+            if total_waited > RATE_LIMIT_MAX_WAIT:
+                with _print_lock:
+                    safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.RED}429 — gave up after {total_waited}s total backoff{C.RESET}")
+                return False, "RATE_LIMITED_EXHAUSTED", short
+
+            with _print_lock:
+                safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.YELLOW}429 — waiting {backoff}s (total {total_waited}s){C.RESET}")
+            time.sleep(backoff)
+            backoff = min(backoff * 2, 120)
+
+    def _submit_worker(svc, acct, url_batch):
+        local_results = []
+        account_dead = False
+        for seq, url in url_batch:
+            if account_dead:
+                break
+
+            ok, msg, short = _submit_one_url(svc, acct, url, _print_lock)
+
+            if msg == "RATE_LIMITED_EXHAUSTED":
+                local_results.append((seq, url, False, "RATE_LIMITED"))
+                account_dead = True
+                with _print_lock:
+                    safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {C.RED}Submit quota exhausted — stopping worker{C.RESET}")
+                continue
+            elif ok:
                 with _status_lock:
                     acct["index_used"] += 1
                 with _print_lock:
                     safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.GREEN}SUBMITTED{C.RESET}")
                 local_results.append((seq, url, True, "OK"))
-            elif msg != "RATE_LIMITED":
-                consecutive_429 = 0
+            else:
                 with _print_lock:
                     safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.RED}{msg[:60]}{C.RESET}")
                 local_results.append((seq, url, False, msg))
