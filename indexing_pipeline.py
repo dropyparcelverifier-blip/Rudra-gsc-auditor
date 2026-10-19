@@ -565,7 +565,9 @@ def parse_inspection_result(result: Dict) -> Dict:
         # Trim to date only
         last_crawl = last_crawl[:10]
 
-    is_indexed = verdict == "PASS" or "indexed" in coverage.lower()
+    is_indexed = verdict == "PASS" or (
+        "indexed" in coverage.lower() and "not indexed" not in coverage.lower()
+    )
 
     rich_results = []
     for item in rich.get("detectedItems", []):
@@ -745,7 +747,13 @@ def cmd_check(args):
                 break
             svc2, acct2 = pair2
             result, err = inspect_url(svc2, url, SITE_URL)
-            if err:
+            if err == "RATE_LIMITED":
+                acct2["inspect_used"] = acct2["inspect_limit"]
+                pool.save()
+                safe_print(f" {C.RED}{err}{C.RESET}")
+                errors += 1
+                continue
+            elif err:
                 safe_print(f" {C.RED}{err}{C.RESET}")
                 errors += 1
                 continue
@@ -940,7 +948,10 @@ def cmd_submit(args):
                 break
             svc2, acct2 = pair2
             ok, msg = submit_url_for_indexing(svc2, url)
-            if ok:
+            if msg == "RATE_LIMITED":
+                acct2["index_used"] = acct2["index_limit"]
+                pool.save()
+            elif ok:
                 pool.record_use(acct2)
         elif ok:
             pool.record_use(acct)
@@ -948,7 +959,7 @@ def cmd_submit(args):
         if ok:
             safe_print(f" {C.GREEN}OK{C.RESET}")
             submitted += 1
-            index_status[url]["submitted_at"] = datetime.now().isoformat()
+            index_status[url]["submitted_at"] = datetime.now(PT_OFFSET).isoformat()
         else:
             safe_print(f" {C.RED}{msg}{C.RESET}")
             errors += 1
@@ -1004,6 +1015,7 @@ def _cmd_daily_inner(args):
     cprint(C.BOLD, "STEP 0/4: Smart URL Classification")
     update_pipeline_status("classify", "running", started_at=started_at, step="0/4")
     source_file = Path(args.source) if hasattr(args, "source") and args.source else DEFAULT_URL_SOURCE
+    all_urls = []
     if source_file.exists():
         with open(source_file, "r", encoding="utf-8") as f:
             all_urls = []
