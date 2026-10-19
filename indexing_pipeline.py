@@ -25,8 +25,10 @@ import os
 import sys
 import time
 import traceback
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from threading import Lock
 from typing import Any, Dict, List, Optional, Tuple
 
 # ---------------------------------------------------------------------------
@@ -733,63 +735,102 @@ def cmd_check(args):
     errors = 0
     rate_limited = False
 
-    cprint(C.BOLD, f"\n  Starting inspection of {len(urls_to_check)} URLs ...\n")
-
-    for i, url in enumerate(urls_to_check):
-        # Get next available account
-        pair = pool.get_next()
-        if pair is None:
-            cprint(C.RED, "\n  All accounts exhausted.")
-            rate_limited = True
-            break
-
-        svc, acct = pair
-        handle = url.split("/products/")[-1] if "/products/" in url else url[-60:]
-        short = handle[:50]
-
-        prefix = f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {progress_bar(i+1, len(urls_to_check))} {short}"
-
-        result, err = inspect_url(svc, url, SITE_URL)
-
-        if err == "RATE_LIMITED":
-            safe_print(f"{prefix} {C.RED}RATE LIMITED{C.RESET}")
-            acct["inspect_used"] = acct["inspect_limit"]
-            pool.save()
-            pair2 = pool.get_next()
-            if pair2 is None:
-                cprint(C.RED, "\n  All accounts exhausted after rate limit.")
-                rate_limited = True
-                break
-            svc2, acct2 = pair2
-            result, err = inspect_url(svc2, url, SITE_URL)
-            if err == "RATE_LIMITED":
-                acct2["inspect_used"] = acct2["inspect_limit"]
-                pool.save()
-                safe_print(f"{prefix} {C.RED}RATE LIMITED (2nd){C.RESET}")
-                errors += 1
-                continue
-            elif err:
-                safe_print(f"{prefix} {C.RED}ERR: {err[:60]}{C.RESET}")
-                errors += 1
-                continue
-            pool.record_use(acct2)
-        elif err:
-            safe_print(f"{prefix} {C.RED}ERR: {err[:60]}{C.RESET}")
-            errors += 1
+    # Build per-account services and split URLs across accounts
+    accounts = quota_data["accounts"]
+    active_accounts = []
+    for acct in accounts:
+        remaining = acct["inspect_limit"] - acct["inspect_used"]
+        if remaining <= 0:
             continue
-        else:
-            pool.record_use(acct)
+        svc = pool._get_service(acct["credentials_file"])
+        if svc is None:
+            continue
+        active_accounts.append((svc, acct, remaining))
 
-        # Parse result
-        parsed = parse_inspection_result(result)
+    if not active_accounts:
+        cprint(C.RED, "\n  No accounts with remaining quota.")
+        return index_status
+
+    num_workers = len(active_accounts)
+    cprint(C.BOLD, f"\n  Starting parallel inspection of {len(urls_to_check)} URLs across {num_workers} accounts ...\n")
+
+    # Distribute URLs round-robin across accounts
+    account_queues: List[List[Tuple[int, str]]] = [[] for _ in range(num_workers)]
+    for i, url in enumerate(urls_to_check):
+        worker_idx = i % num_workers
+        account_queues[worker_idx].append((i, url))
+
+    # Shared state with locks
+    _print_lock = Lock()
+    _status_lock = Lock()
+
+    def _inspect_worker(worker_idx, svc, acct, url_batch):
+        """Worker: inspect a batch of URLs using one account."""
+        local_results = []
+        for seq, url in url_batch:
+            handle = url.split("/products/")[-1] if "/products/" in url else url[-60:]
+            short = handle[:50]
+
+            result, err = inspect_url(svc, url, SITE_URL)
+
+            if err == "RATE_LIMITED":
+                with _print_lock:
+                    safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.RED}RATE LIMITED — stopping account{C.RESET}")
+                local_results.append((seq, url, None, "RATE_LIMITED"))
+                break
+            elif err:
+                with _print_lock:
+                    safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.RED}ERR: {err[:60]}{C.RESET}")
+                local_results.append((seq, url, None, err))
+            else:
+                with _status_lock:
+                    acct["inspect_used"] += 1
+                parsed = parse_inspection_result(result)
+                coverage = parsed["coverage"]
+                if parsed["is_indexed"]:
+                    color = C.GREEN
+                elif "unknown" in coverage.lower():
+                    color = C.RED
+                else:
+                    color = C.YELLOW
+                with _print_lock:
+                    safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {color}{coverage}{C.RESET}")
+                local_results.append((seq, url, parsed, None))
+
+            time.sleep(API_DELAY)
+        return local_results
+
+    # Launch parallel workers
+    all_results = []
+    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        futures = {}
+        for w_idx, (svc, acct, _remaining) in enumerate(active_accounts):
+            if account_queues[w_idx]:
+                fut = executor.submit(_inspect_worker, w_idx, svc, acct, account_queues[w_idx])
+                futures[fut] = w_idx
+
+        for fut in as_completed(futures):
+            try:
+                results = fut.result()
+                all_results.extend(results)
+            except Exception as e:
+                cprint(C.RED, f"  Worker error: {e}")
+
+    # Process results into index_status (sorted by original order)
+    all_results.sort(key=lambda r: r[0])
+    for seq, url, parsed, err in all_results:
+        if err:
+            errors += 1
+            if err == "RATE_LIMITED":
+                rate_limited = True
+            continue
+
         old_entry = index_status.get(url, {})
-        # Preserve any existing submitted_at
         if old_entry.get("submitted_at"):
             parsed["submitted_at"] = old_entry["submitted_at"]
         else:
             parsed["submitted_at"] = ""
 
-        # Track changes on re-checks
         if old_entry and old_entry.get("coverage"):
             log_change(url, old_entry, parsed)
             if old_entry.get("coverage") != parsed["coverage"]:
@@ -803,13 +844,6 @@ def cmd_check(args):
         coverage = parsed["coverage"]
         counts[coverage] = counts.get(coverage, 0) + 1
 
-        if parsed["is_indexed"]:
-            safe_print(f"{prefix} {C.GREEN}{coverage}{C.RESET}")
-        elif "unknown" in coverage.lower():
-            safe_print(f"{prefix} {C.RED}{coverage}{C.RESET}")
-        else:
-            safe_print(f"{prefix} {C.YELLOW}{coverage}{C.RESET}")
-
         if checked % SAVE_EVERY == 0:
             save_json(INDEX_STATUS_FILE, index_status)
             pool.save()
@@ -817,8 +851,6 @@ def cmd_check(args):
                                    inspected=checked, inspect_total=len(urls_to_check),
                                    inspect_errors=errors)
             cprint(C.DIM, f"    [{_ts()}] Saved checkpoint — {checked}/{len(urls_to_check)} inspected, {errors} errors")
-
-        time.sleep(API_DELAY)
 
     # Final save
     save_json(INDEX_STATUS_FILE, index_status)
@@ -936,54 +968,83 @@ def cmd_submit(args):
     submitted = 0
     errors = 0
 
-    cprint(C.BOLD, f"\n  Submitting {len(candidates)} URLs ...\n")
+    # Build per-account services for parallel submission
+    accounts = quota_data["accounts"]
+    active_submit = []
+    for acct in accounts:
+        remaining = acct["index_limit"] - acct["index_used"]
+        if remaining <= 0:
+            continue
+        svc = pool._get_service(acct["credentials_file"])
+        if svc is None:
+            continue
+        active_submit.append((svc, acct, remaining))
 
+    if not active_submit:
+        cprint(C.RED, "\n  No accounts with remaining index quota.")
+        return
+
+    num_workers = len(active_submit)
+    cprint(C.BOLD, f"\n  Submitting {len(candidates)} URLs across {num_workers} accounts in parallel ...\n")
+
+    # Distribute URLs round-robin
+    submit_queues: List[List[Tuple[int, str]]] = [[] for _ in range(num_workers)]
     for i, url in enumerate(candidates):
-        pair = pool.get_next()
-        if pair is None:
-            cprint(C.RED, "\n  All accounts exhausted.")
-            break
+        submit_queues[i % num_workers].append((i, url))
 
-        svc, acct = pair
-        handle = url.split("/products/")[-1] if "/products/" in url else url[-60:]
-        short = handle[:50]
+    _print_lock = Lock()
+    _status_lock = Lock()
 
-        prefix = f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {progress_bar(i+1, len(candidates))} {short}"
+    def _submit_worker(svc, acct, url_batch):
+        local_results = []
+        for seq, url in url_batch:
+            handle = url.split("/products/")[-1] if "/products/" in url else url[-60:]
+            short = handle[:50]
 
-        ok, msg = submit_url_for_indexing(svc, url)
+            ok, msg = submit_url_for_indexing(svc, url)
 
-        if msg == "RATE_LIMITED":
-            safe_print(f"{prefix} {C.RED}RATE LIMITED{C.RESET}")
-            acct["index_used"] = acct["index_limit"]
-            pool.save()
-            pair2 = pool.get_next()
-            if pair2 is None:
-                cprint(C.RED, "\n  All accounts exhausted.")
-                break
-            svc2, acct2 = pair2
-            ok, msg = submit_url_for_indexing(svc2, url)
             if msg == "RATE_LIMITED":
-                acct2["index_used"] = acct2["index_limit"]
-                pool.save()
+                with _print_lock:
+                    safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.RED}RATE LIMITED — stopping account{C.RESET}")
+                local_results.append((seq, url, False, "RATE_LIMITED"))
+                break
             elif ok:
-                pool.record_use(acct2)
-        elif ok:
-            pool.record_use(acct)
+                with _status_lock:
+                    acct["index_used"] += 1
+                with _print_lock:
+                    safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.GREEN}SUBMITTED{C.RESET}")
+                local_results.append((seq, url, True, "OK"))
+            else:
+                with _print_lock:
+                    safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.RED}{msg[:60]}{C.RESET}")
+                local_results.append((seq, url, False, msg))
 
+            time.sleep(API_DELAY)
+        return local_results
+
+    all_submit_results = []
+    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        futures = {}
+        for w_idx, (svc, acct, _rem) in enumerate(active_submit):
+            if submit_queues[w_idx]:
+                fut = executor.submit(_submit_worker, svc, acct, submit_queues[w_idx])
+                futures[fut] = w_idx
+
+        for fut in as_completed(futures):
+            try:
+                results = fut.result()
+                all_submit_results.extend(results)
+            except Exception as e:
+                cprint(C.RED, f"  Worker error: {e}")
+
+    # Process results
+    all_submit_results.sort(key=lambda r: r[0])
+    for seq, url, ok, msg in all_submit_results:
         if ok:
-            safe_print(f"{prefix} {C.GREEN}SUBMITTED{C.RESET}")
             submitted += 1
             index_status[url]["submitted_at"] = datetime.now(PT_OFFSET).isoformat()
         else:
-            safe_print(f"{prefix} {C.RED}{msg[:60]}{C.RESET}")
             errors += 1
-
-        # Save periodically
-        if (submitted + errors) % SAVE_EVERY == 0:
-            save_json(INDEX_STATUS_FILE, index_status)
-            pool.save()
-
-        time.sleep(API_DELAY)
 
     # Final save
     save_json(INDEX_STATUS_FILE, index_status)
