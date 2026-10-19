@@ -576,28 +576,41 @@ def parse_inspection_result(result: Dict) -> Dict:
     ir = result.get("inspectionResult", {})
     idx_status = ir.get("indexStatusResult", {})
     rich = ir.get("richResultsResult", {})
+    mobile = ir.get("mobileUsabilityResult", {})
 
     coverage = idx_status.get("coverageState", "Unknown")
     verdict = idx_status.get("verdict", "")
     last_crawl = idx_status.get("lastCrawlTime", "")
     if last_crawl:
-        # Trim to date only
         last_crawl = last_crawl[:10]
 
     is_indexed = verdict == "PASS" or (
         "indexed" in coverage.lower() and "not indexed" not in coverage.lower()
     )
 
+    # Rich results: type + per-item verdict
     rich_results = []
+    rich_details = []
     for item in rich.get("detectedItems", []):
         rr_type = item.get("richResultType", "")
         if rr_type:
             rich_results.append(rr_type)
+            issues = []
+            for sub in item.get("items", []):
+                for iss in sub.get("issues", []):
+                    issues.append(iss.get("issueMessage", ""))
+            rich_details.append({
+                "type": rr_type,
+                "issues": issues,
+            })
 
     return {
         "coverage": coverage,
         "last_crawl": last_crawl,
         "rich_results": rich_results,
+        "rich_verdict": rich.get("verdict", ""),
+        "rich_details": rich_details,
+        "mobile_verdict": mobile.get("verdict", ""),
         "is_indexed": is_indexed,
         "checked_at": today_pt(),
     }
@@ -875,6 +888,32 @@ def cmd_check(args):
     cprint(C.BOLD, "  Coverage Breakdown (this run):")
     for cov, cnt in sorted(counts.items(), key=lambda x: -x[1]):
         cprint(C.WHITE, f"    {cov:<45} {cnt:>6}")
+
+    # Rich results / enhancements summary
+    rich_counts: Dict[str, int] = {}
+    rich_verdict_counts: Dict[str, int] = {"PASS": 0, "FAIL": 0, "": 0}
+    mobile_counts: Dict[str, int] = {"PASS": 0, "FAIL": 0, "": 0}
+    for v in index_status.values():
+        for rr in v.get("rich_results", []):
+            rich_counts[rr] = rich_counts.get(rr, 0) + 1
+        rv = v.get("rich_verdict", "")
+        rich_verdict_counts[rv] = rich_verdict_counts.get(rv, 0) + 1
+        mv = v.get("mobile_verdict", "")
+        mobile_counts[mv] = mobile_counts.get(mv, 0) + 1
+
+    if rich_counts:
+        cprint(C.BOLD, "\n  Rich Results / Enhancements:")
+        for rr, cnt in sorted(rich_counts.items(), key=lambda x: -x[1]):
+            cprint(C.GREEN, f"    {rr:<45} {cnt:>6}")
+        rr_pass = rich_verdict_counts.get("PASS", 0)
+        rr_fail = rich_verdict_counts.get("FAIL", 0)
+        cprint(C.WHITE, f"    Rich verdict PASS: {rr_pass}  FAIL: {rr_fail}")
+
+    mob_pass = mobile_counts.get("PASS", 0)
+    mob_fail = mobile_counts.get("FAIL", 0)
+    if mob_pass or mob_fail:
+        cprint(C.BOLD, "\n  Mobile Usability:")
+        cprint(C.GREEN if mob_fail == 0 else C.YELLOW, f"    PASS: {mob_pass}  FAIL: {mob_fail}")
 
     # Export CSVs
     print()
