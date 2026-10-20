@@ -59,8 +59,8 @@ URL_CLASSIFICATIONS_FILE = DATA_DIR / "url_classifications.json"
 
 PIPELINE_STATUS_FILE = DATA_DIR / "pipeline_status.json"
 
-INSPECT_DAILY_LIMIT = 2000
-INDEX_DAILY_LIMIT = 200
+INSPECT_DAILY_LIMIT = 2000   # per-property limit (shared across ALL accounts)
+INDEX_DAILY_LIMIT = 200      # per-account limit for Indexing API
 SAVE_EVERY = 25
 API_DELAY = 0.3
 PARALLEL_DELAY = 3.0  # per-worker delay when running parallel (avoids burst rate limits)
