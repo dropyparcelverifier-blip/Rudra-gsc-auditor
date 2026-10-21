@@ -65,7 +65,7 @@ SAVE_EVERY = 25
 API_DELAY = 0.3
 PARALLEL_DELAY = 3.0  # per-worker delay when running parallel (avoids burst rate limits)
 MAX_RETRIES = 3
-RATE_LIMIT_MAX_WAIT = 600  # max total seconds to spend retrying 429s before giving up on account
+RATE_LIMIT_MAX_WAIT = 120  # max total seconds retrying 429s per URL — stops fast when daily quota is hit
 
 # URL types that should NOT be inspected/indexed (waste of quota)
 SKIP_PATTERNS = [
@@ -803,7 +803,7 @@ def cmd_check(args):
             with _print_lock:
                 safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.YELLOW}429 — waiting {backoff}s (total {total_waited}s){C.RESET}")
             time.sleep(backoff)
-            backoff = min(backoff * 2, 120)
+            backoff = min(backoff * 2, 60)
 
     def _inspect_worker(worker_idx, svc, acct, url_batch):
         """Worker: inspect a batch of URLs using one account."""
@@ -1097,7 +1097,7 @@ def cmd_submit(args):
             with _print_lock:
                 safe_print(f"  {C.DIM}{_ts()} [{acct['name']}]{C.RESET} {short} {C.YELLOW}429 — waiting {backoff}s (total {total_waited}s){C.RESET}")
             time.sleep(backoff)
-            backoff = min(backoff * 2, 120)
+            backoff = min(backoff * 2, 60)
 
     def _submit_worker(svc, acct, url_batch):
         local_results = []
@@ -1625,6 +1625,19 @@ def take_daily_snapshot(index_status: Optional[Dict] = None):
     dropped_today = sum(1 for c in today_changes if c.get("type") == "dropped_from_index")
     status_changes_today = sum(1 for c in today_changes if c.get("type") == "status_change")
 
+    rich_breakdown = {"Product": 0, "MerchantListing": 0, "Review": 0, "None": 0}
+    for v in index_status.values():
+        rich = v.get("rich_results", [])
+        if not rich:
+            rich_breakdown["None"] += 1
+        for r in rich:
+            if "Review" in r:
+                rich_breakdown["Review"] += 1
+            elif "Merchant" in r:
+                rich_breakdown["MerchantListing"] += 1
+            elif "Product" in r:
+                rich_breakdown["Product"] += 1
+
     snapshot = {
         "date": today_pt(),
         "total_urls": total,
@@ -1633,6 +1646,7 @@ def take_daily_snapshot(index_status: Optional[Dict] = None):
         "submitted": submitted_today,
         "checked": checked_today,
         "breakdown": breakdown,
+        "rich_breakdown": rich_breakdown,
         "newly_indexed": newly_indexed_today,
         "dropped": dropped_today,
         "status_changes": status_changes_today,

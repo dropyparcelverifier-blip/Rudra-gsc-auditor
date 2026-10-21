@@ -311,24 +311,20 @@ DASHBOARD_HTML = r"""<!DOCTYPE html>
         document.getElementById('accountsList').innerHTML = '<div style="font-size: 13px; color: var(--muted);">No accounts configured. Run: python indexing_pipeline.py accounts</div>';
         return;
       }
-      document.getElementById('accountsList').innerHTML = accounts.map(a => {
-        const inspectPct = a.inspect_limit ? ((a.inspect_used / a.inspect_limit) * 100).toFixed(0) : 0;
-        const indexPct = a.index_limit ? ((a.index_used / a.index_limit) * 100).toFixed(0) : 0;
-        return `
-          <div style="background: var(--surface-2); border-radius: 8px; padding: 12px;">
-            <div style="font-size: 13px; font-weight: 600; margin-bottom: 6px;">${a.name}</div>
-            <div style="display: flex; gap: 16px;">
-              <div style="flex: 1;">
-                <div style="font-size: 11px; color: var(--muted); margin-bottom: 4px;">Inspect ${a.inspect_used}/${a.inspect_limit}</div>
-                <div class="progress-bar"><div class="progress-fill" style="width: ${inspectPct}%; background: var(--blue);"></div></div>
-              </div>
-              <div style="flex: 1;">
-                <div style="font-size: 11px; color: var(--muted); margin-bottom: 4px;">Index ${a.index_used}/${a.index_limit}</div>
-                <div class="progress-bar"><div class="progress-fill" style="width: ${indexPct}%; background: var(--orange);"></div></div>
-              </div>
-            </div>
-          </div>`;
-      }).join('');
+      const totalInspUsed = accounts.reduce((s, a) => s + (a.inspect_used || 0), 0);
+      const totalIdxUsed = accounts.reduce((s, a) => s + (a.index_used || 0), 0);
+      const totalIdxLimit = accounts.length * 200;
+      const inspPct = Math.min(100, (totalInspUsed / 2000 * 100)).toFixed(0);
+      const idxPct = totalIdxLimit ? Math.min(100, (totalIdxUsed / totalIdxLimit * 100)).toFixed(0) : 0;
+      document.getElementById('accountsList').innerHTML = `
+        <div style="background: var(--surface-2); border-radius: 8px; padding: 12px; margin-bottom: 8px;">
+          <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px; color: var(--blue);">Shared Quotas (all ${accounts.length} accounts)</div>
+          <div style="font-size: 11px; color: var(--muted); margin-bottom: 4px;">Inspection (per property): ${totalInspUsed} / 2,000</div>
+          <div class="progress-bar" style="margin-bottom: 8px;"><div class="progress-fill" style="width: ${inspPct}%; background: var(--blue);"></div></div>
+          <div style="font-size: 11px; color: var(--muted); margin-bottom: 4px;">Indexing (per project): ${totalIdxUsed} / ${totalIdxLimit}</div>
+          <div class="progress-bar"><div class="progress-fill" style="width: ${idxPct}%; background: var(--orange);"></div></div>
+        </div>
+        <div style="font-size: 10px; color: var(--muted);">${accounts.length} service accounts — quotas are shared, extra accounts only add parallel speed</div>`;
     }
 
     function renderCoverageChart(breakdown) {
