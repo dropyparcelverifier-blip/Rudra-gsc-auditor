@@ -138,7 +138,7 @@ export default function Snippets({ data, loading, refresh }) {
                 <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={95} paddingAngle={2}>
                   {pieData.map((d, i) => <Cell key={i} fill={d.color} />)}
                 </Pie>
-                <Tooltip formatter={(v) => v.toLocaleString()} />
+                <Tooltip formatter={(v) => (v ?? 0).toLocaleString()} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -149,7 +149,7 @@ export default function Snippets({ data, loading, refresh }) {
               <BarChart data={snippetData} layout="vertical" margin={{ left: 10 }}>
                 <XAxis type="number" tick={{ fontSize: 11 }} />
                 <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 11 }} />
-                <Tooltip formatter={(v) => v.toLocaleString()} />
+                <Tooltip formatter={(v) => (v ?? 0).toLocaleString()} />
                 <Bar dataKey="clicks" radius={[0, 6, 6, 0]} barSize={26}>
                   {snippetData.map((d, i) => <Cell key={i} fill={d.color} />)}
                 </Bar>
