@@ -41,7 +41,7 @@ function IndexDonut({ indexed, notIndexed }) {
             paddingAngle={3} startAngle={90} endAngle={-270} strokeWidth={0}>
             {data.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
           </Pie>
-          <Tooltip formatter={v => v.toLocaleString()} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+          <Tooltip formatter={v => (v ?? 0).toLocaleString()} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
         </PieChart>
       </ResponsiveContainer>
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
